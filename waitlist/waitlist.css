@@ -247,7 +247,9 @@ fieldset.wl-field > legend + * { clear: both; }
 .wl-success__eyebrow { justify-self: center; }
 .wl-done { font-family: var(--serif); font-weight: 400; font-size: clamp(3.2rem, 2.4rem + 3.6vw, 4.9rem); line-height: 1; letter-spacing: -.025em; }
 .wl-done em { font-style: italic; background: var(--grad-gold-text); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: .06em; }
-.wl-done:focus { outline: none; }
+.wl-done:focus, .wl-card__title:focus { outline: none; }
+/* The form only works with JavaScript; without it a <noscript> note shows */
+html:not(.js) [data-wl-form] { display: none; }
 .wl-success__lead { color: var(--text-2); }
 .wl-city { display: flex; gap: 10px; align-items: flex-start; justify-self: center; text-align: left; padding: 12px 16px; border-radius: 14px; background: rgba(200, 149, 106, .1); border: 1px solid var(--line); color: var(--cream); font-size: .9rem; line-height: 1.5; }
 
@@ -359,7 +361,7 @@ fieldset.wl-field > legend + * { clear: both; }
   .wl-choices__row { gap: 8px; }
   .wl-choice__box { padding: 12px 10px; }
   .wl-choice__s { display: none; }
-  .wl-nom { grid-template-columns: 104px 1fr; }
+  .wl-nom { grid-template-columns: 112px 1fr; }
   .wl-nom select { padding-left: 12px; font-size: .84rem; }
   .wl-award { grid-template-columns: 56px 1fr; gap: 14px; }
   .wl-medal { width: 56px; height: 56px; }

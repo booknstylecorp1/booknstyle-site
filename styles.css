@@ -341,6 +341,9 @@ a.store-badge:hover { transform: translateY(-2px); }
   }
   .nav-open .site-nav { opacity: 1; visibility: visible; transition: opacity .5s var(--ease-out); }
   .nav-open body { overflow: hidden; }
+  /* Without JavaScript the menu can't open: show the header button instead */
+  html:not(.js) .nav-toggle { display: none; }
+  html:not(.js) .header-cta { display: inline-flex; }
   .site-nav ul { flex-direction: column; gap: 6px; }
   .site-nav ul a { display: block; font-family: var(--serif); font-size: 2.4rem; line-height: 1.25; color: var(--text); padding: 6px 0; }
   .site-nav ul a::after { display: none; }
@@ -459,12 +462,24 @@ a.store-badge:hover { transform: translateY(-2px); }
   .hero__stage .p-center { --pw: 196px; }
   .hero__stage .p-left { --pw: 148px; translate: -122% 14%; }
   .hero__stage .p-right { --pw: 148px; translate: 22% 14%; }
-  /* Labels leave the phones: they sit under them, so no screen is covered */
-  .hero__chips--desk, .hero__note--desk { display: none; }
-  .hero__chips--phone { display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; z-index: 5; margin-top: 6px; }
-  .hero__chips--phone .chip { position: static; }
-  .hero__chips--phone .chip { max-width: 100%; white-space: normal; text-align: left; }
+  .hero__note--desk { display: none; }
   .hero__note--phone { display: block; margin: 12px 0 0; }
+}
+
+/* Phones and tablets: here the labels sit under the phones, on the lighter
+   middle of the hero background, so a fade to solid ink would leave a hard
+   line. Each phone fades out on its own instead (a mask), and whatever is
+   behind it shows through. The labels leave the phones and sit under them,
+   so no screen is covered and neither one runs off a narrow window. */
+@media (max-width: 1023px) {
+  .hero__fade { display: none; }
+  .hero__stage .phone__frame {
+    -webkit-mask-image: linear-gradient(180deg, #000 48%, transparent 78%);
+    mask-image: linear-gradient(180deg, #000 48%, transparent 78%);
+  }
+  .hero__chips--desk { display: none; }
+  .hero__chips--phone { display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; z-index: 5; margin-top: 6px; }
+  .hero__chips--phone .chip { position: static; max-width: 100%; white-space: normal; text-align: left; }
 }
 
 /* Intro choreography for the hero copy (starts with the logo) */
