@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Unsubscribe | BookNStyle</title>
+  <meta name="robots" content="noindex">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#0A0B11">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="../../favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..500;1,6..96,400..500&amp;family=Inter:wght@400;500;600&amp;display=swap">
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="../waitlist.css">
+  <script>document.documentElement.classList.add('js');</script>
+  <script src="../../main.js" defer></script>
+</head>
+<body>
+  <header class="site-header" data-header>
+    <div class="container header-inner">
+      <a class="brand" href="../../" aria-label="BookNStyle home">
+        <span class="gr gr--row" aria-hidden="true">
+          <span class="gr__mark"><img src="../../assets/mark.webp" width="504" height="459" alt=""></span>
+          <span class="gr__word">BOOKNSTYLE</span>
+        </span>
+      </a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="wl-hero wl-unsub grain" aria-labelledby="unsub-title">
+      <div class="hero__bg wl-bg" aria-hidden="true"></div>
+      <div class="container">
+        <div class="wl-card">
+          <p class="eyebrow wl-success__eyebrow">Waitlist emails</p>
+          <h1 class="wl-card__title" id="unsub-title" tabindex="-1" data-u-title>Unsubscribe from waitlist emails?</h1>
+          <p class="lead" data-u-text>You'll stop getting BookNStyle's launch and news emails, including the launch day email. You stay on the list. A booking link you claimed stays held until 60 days after launch: sign up in the app as a pro with this email to keep it.</p>
+          <p class="wl-form-error" role="alert" data-u-error hidden></p>
+          <div class="wl-unsub__actions">
+            <button class="btn btn--gold" type="button" data-u-unsub hidden>Unsubscribe</button>
+            <button class="wl-btn-quiet" type="button" data-u-resub hidden>Resubscribe</button>
+            <a class="wl-btn-quiet" href="../../" data-u-back>Back to BookNStyle</a>
+          </div>
+          <p class="wl-fine" data-u-resub-note hidden style="margin-top:16px">Resubscribe means: Email me about BookNStyle's launch and news. Unsubscribe anytime.</p>
+          <p class="wl-fine" style="margin-top:20px">Questions? Email <a href="mailto:support@booknstyle.com">support@booknstyle.com</a>.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+  (() => {
+    'use strict';
+    // The waitlist-unsubscribe edge function (deployed with --no-verify-jwt).
+    const API_URL = 'https://ebrxekhmlxlccuvcwiwb.supabase.co/functions/v1/waitlist-unsubscribe';
+    const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const params = new URLSearchParams(location.search);
+    const token = (params.get('t') || '').trim();
+    const isLocal = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+
+    const title = document.querySelector('[data-u-title]');
+    const text = document.querySelector('[data-u-text]');
+    const error = document.querySelector('[data-u-error]');
+    const resub = document.querySelector('[data-u-resub]');
+    const resubNote = document.querySelector('[data-u-resub-note]');
+    const unsub = document.querySelector('[data-u-unsub]');
+    const back = document.querySelector('[data-u-back]');
+    // The gold button is the main action: Unsubscribe while asking, then Back.
+    const backIsMain = () => { back.className = 'btn btn--gold'; };
+
+    const show = (t, body) => { title.textContent = t; text.textContent = body; title.focus(); };
+    const fail = (msg) => { error.textContent = msg; error.hidden = false; };
+
+    const unsubscribed = () => {
+      show("You're unsubscribed", "You won't get any more waitlist emails from BookNStyle, including the launch day email. You stay on the list. A booking link you claimed stays held until 60 days after launch: sign up in the app as a pro with this email to keep it.");
+      unsub.hidden = true;
+      backIsMain();
+      resub.hidden = false;
+      resubNote.hidden = false;
+    };
+
+    async function send(action) {
+      const resp = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ t: token, action }),
+      });
+      const data = await resp.json().catch(() => null);
+      if (!resp.ok || !data || !data.ok) throw new Error((data && data.error) || 'Something went wrong. Please try again.');
+      return data;
+    }
+
+    resub.addEventListener('click', async () => {
+      error.hidden = true;
+      resub.disabled = true;
+      try {
+        await send('resubscribe');
+        show("You're subscribed again", "We'll email you about BookNStyle's launch and news.");
+        resub.hidden = true;
+        resubNote.hidden = true;
+      } catch (e) {
+        fail(e.message);
+      } finally {
+        resub.disabled = false;
+      }
+    });
+
+    // Only a tap unsubscribes, never just opening the page: email security
+    // scanners open links in a real browser and run this script.
+    unsub.addEventListener('click', async () => {
+      error.hidden = true;
+      unsub.disabled = true;
+      try {
+        await send('unsubscribe');
+        unsubscribed();
+      } catch (e) {
+        show("We couldn't unsubscribe you yet", 'Please tap Unsubscribe again, or reply "unsubscribe" to our email.');
+        fail(e.message);
+      } finally {
+        unsub.disabled = false;
+      }
+    });
+
+    // Local preview only (ignored on booknstyle.com).
+    if (isLocal && params.get('preview') === 'done') { unsubscribed(); return; }
+
+    if (!UUID.test(token)) {
+      show("This link isn't complete", 'Please use the Unsubscribe link in your BookNStyle email, or reply "unsubscribe" to that email.');
+      backIsMain();
+      return;
+    }
+    unsub.hidden = false;
+  })();
+  </script>
+</body>
+</html>
