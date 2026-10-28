@@ -301,12 +301,17 @@ a.store-badge:hover { transform: translateY(-2px); }
 /* ==========================================================================
    6. Header and navigation
    ========================================================================== */
-.site-header { position: fixed; inset: 0 0 auto 0; z-index: 50; transition: background-color .5s, box-shadow .5s; }
-.site-header.is-scrolled {
+.site-header { position: fixed; inset: 0 0 auto 0; z-index: 50; transition: box-shadow .5s; }
+.site-header.is-scrolled { box-shadow: 0 1px 0 var(--line-soft); }
+/* The frosted glass lives on a layer behind the header, never on the header itself:
+   a backdrop-filter on the header would trap the fixed full-screen mobile menu inside its 64px strip */
+.site-header::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background: rgba(10, 11, 17, .74);
   -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4);
-  box-shadow: 0 1px 0 var(--line-soft);
+  opacity: 0; transition: opacity .5s;
 }
+.site-header.is-scrolled::before { opacity: 1; }
 .header-inner { display: flex; align-items: center; gap: 24px; height: 76px; }
 .brand { display: inline-flex; text-decoration: none; margin-right: auto; border-radius: 8px; }
 .brand .gr { --h: 30px; }
