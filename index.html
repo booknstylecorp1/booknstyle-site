@@ -37,7 +37,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..500;1,6..96,400..500&amp;family=Inter:wght@400;500;600&amp;display=swap">
   <link rel="preload" as="image" href="assets/mark.webp" type="image/webp">
   <link rel="stylesheet" href="styles.css">
-  <script>document.documentElement.classList.add('js');</script>
+  <!-- aud-client: a link with ?for=clients opens the client version of the top section, set here so the pro version never flashes first -->
+  <script>document.documentElement.classList.add('js');try{if(/^clients?$/i.test(new URLSearchParams(location.search).get('for')||''))document.documentElement.classList.add('aud-client');}catch(e){}</script>
   <script src="main.js" defer></script>
 
   <script type="application/ld+json">
@@ -110,6 +111,8 @@
       <symbol id="i-instagram" viewBox="0 0 24 24"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><path d="M17.5 6.5h.01"/></symbol>
       <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 6v12M15 6v12"/></symbol>
       <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></symbol>
+      <symbol id="i-sound-off" viewBox="0 0 24 24"><path d="M11 5L6 9H2.5v6H6l5 4z"/><path d="M22 9.5l-5 5M17 9.5l5 5"/></symbol>
+      <symbol id="i-sound-on" viewBox="0 0 24 24"><path d="M11 5L6 9H2.5v6H6l5 4z"/><path d="M15.5 8.8a4.5 4.5 0 0 1 0 6.4M18.6 5.7a9 9 0 0 1 0 12.6"/></symbol>
     </defs>
   </svg>
 
@@ -132,8 +135,8 @@
 
       <nav class="site-nav" id="site-nav" aria-label="Primary">
         <ul role="list">
-          <li><a href="#clients">For clients</a></li>
           <li><a href="#pros">For pros</a></li>
+          <li><a href="#clients">For clients</a></li>
           <li><a href="#how">How it works</a></li>
           <li><a href="#faq">FAQ</a></li>
           <li data-soon-only><a href="waitlist/">Waitlist</a></li>
@@ -181,12 +184,27 @@
         <p class="eyebrow hero__kicker intro" style="--d:1.15s" data-soon-only><span class="eyebrow__rule"></span>Launching soon in New York<span class="eyebrow__rule"></span></p>
         <p class="eyebrow hero__kicker intro" style="--d:1.15s" data-live-only hidden><span class="eyebrow__rule"></span>Now on iPhone and Android<span class="eyebrow__rule"></span></p>
 
-        <h1 class="display intro" id="hero-title" style="--d:.3s">Book the beauty pros <em>near&nbsp;you.</em></h1>
-        <p class="lead intro" style="--d:.45s">Barbers, hairstylists, nail and lash techs, makeup artists and more. Find them, book them and message them, all in one app.</p>
+        <!-- Pros first. Everything marked data-aud="client" shows instead of data-aud="pro" when html has
+             .aud-client (this switch, or a ?for=clients link). main.js, Audience switch. -->
+        <div class="aud intro" style="--d:.2s" role="group" aria-label="Show this page for" data-aud-switch>
+          <button class="aud__opt" type="button" aria-pressed="true" data-aud-set="pro">I'm a pro</button>
+          <button class="aud__opt" type="button" aria-pressed="false" data-aud-set="client">I'm a client</button>
+        </div>
+
+        <h1 class="display intro" id="hero-title" style="--d:.3s">
+          <span class="hero__line" data-aud="pro">Your clients. <em>Your&nbsp;link.</em></span>
+          <span class="hero__line" data-aud="client">Book the beauty pros <em>near&nbsp;you.</em></span>
+        </h1>
+        <p class="lead intro" style="--d:.45s">
+          <span class="hero__line" data-aud="pro">Built for barbers, hairstylists, nail and lash techs and more. Share one booking link, take deposits and get paid to your bank. No commission on your services.</span>
+          <span class="hero__line" data-aud="client">Barbers, hairstylists, nail and lash techs, makeup artists and more. Find them, book them and message them, all in one app.</span>
+        </p>
 
         <div class="hero__ctas intro" style="--d:.6s">
-          <a class="btn btn--gold" href="waitlist/" data-soon-only>Join the waitlist<svg class="btn__arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          <a class="btn btn--ghost" href="waitlist/?role=pro" data-soon-only>For pros: claim your link</a>
+          <a class="btn btn--gold" href="waitlist/?role=pro" data-aud="pro" data-soon-only>Claim your booking link<svg class="btn__arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn--ghost" href="#pros" data-aud="pro" data-soon-only>See how it works</a>
+          <a class="btn btn--gold" href="waitlist/" data-aud="client" data-soon-only>Join the waitlist<svg class="btn__arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn--ghost" href="#clients" data-aud="client" data-soon-only>See how booking works</a>
           <a class="btn btn--gold" href="#download" data-live-only hidden>Get the app<svg class="btn__arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
         </div>
 
@@ -210,32 +228,53 @@
 
       <div class="container">
         <div class="hero__stage intro-phones" style="--d:.8s">
-          <figure class="phone p-left" data-parallax="0.08">
+          <!-- Pro version: the pro's own tools -->
+          <figure class="phone p-left" data-parallax="0.08" data-aud="pro">
             <div class="float float--b"><div class="phone__frame">
-              <img class="phone__screen" src="assets/screens/discover.webp" width="700" height="1521" alt="BookNStyle Discover screen: a grid of pros with photos, specialties and star ratings, filterable by category." decoding="async">
+              <img class="phone__screen" src="assets/screens/pro-calendar.webp" width="700" height="1521" alt="Pro schedule in month view, with the day's bookings listed below the calendar." decoding="async">
             </div></div>
           </figure>
-          <figure class="phone p-center" data-parallax="0.03">
+          <figure class="phone p-center" data-parallax="0.03" data-aud="pro">
             <div class="float"><div class="phone__frame">
-              <img class="phone__screen" src="assets/screens/profile.webp" width="700" height="1521" alt="A pro's profile in BookNStyle with a rating, about section, portfolio photos and a Book now button." decoding="async">
-            </div></div>
-          </figure>
-          <figure class="phone p-right" data-parallax="0.08">
-            <div class="float float--c"><div class="phone__frame">
               <img class="phone__screen" src="assets/screens/pro-invite.webp" width="700" height="1521" alt="Invite Clients screen with a personal booking link, Share and Copy buttons, and a QR code." decoding="async">
             </div></div>
           </figure>
+          <figure class="phone p-right" data-parallax="0.08" data-aud="pro">
+            <div class="float float--c"><div class="phone__frame">
+              <img class="phone__screen" src="assets/screens/pro-clients.webp" width="700" height="1521" alt="Clients screen: every client in one place, with their visits and last service." decoding="async">
+            </div></div>
+          </figure>
+          <!-- Client version: lazy, so these load only when someone switches to it -->
+          <figure class="phone p-left" data-parallax="0.08" data-aud="client">
+            <div class="float float--b"><div class="phone__frame">
+              <img class="phone__screen" src="assets/screens/discover.webp" width="700" height="1521" alt="BookNStyle Discover screen: a grid of pros with photos, specialties and star ratings, filterable by category." loading="lazy" decoding="async">
+            </div></div>
+          </figure>
+          <figure class="phone p-center" data-parallax="0.03" data-aud="client">
+            <div class="float"><div class="phone__frame">
+              <img class="phone__screen" src="assets/screens/profile.webp" width="700" height="1521" alt="A pro's profile in BookNStyle with a rating, about section, portfolio photos and a Book now button." loading="lazy" decoding="async">
+            </div></div>
+          </figure>
+          <figure class="phone p-right" data-parallax="0.08" data-aud="client">
+            <div class="float float--c"><div class="phone__frame">
+              <img class="phone__screen" src="assets/screens/pro-invite.webp" width="700" height="1521" alt="Invite Clients screen with a personal booking link, Share and Copy buttons, and a QR code." loading="lazy" decoding="async">
+            </div></div>
+          </figure>
           <div class="hero__chips hero__chips--desk" aria-hidden="true">
-            <div class="chip chip--a" data-parallax="0.14"><span class="chip__icon"><svg><use href="#i-star"/></svg></span>Reviews from completed appointments</div>
-            <div class="chip chip--b" data-parallax="0.18"><span class="chip__icon"><svg><use href="#i-refresh"/></svg></span>One free reschedule per booking</div>
+            <div class="chip chip--a" data-parallax="0.14" data-aud="pro"><span class="chip__icon"><svg><use href="#i-percent"/></svg></span>No commission on your services</div>
+            <div class="chip chip--b" data-parallax="0.18" data-aud="pro"><span class="chip__icon"><svg><use href="#i-link"/></svg></span>Clients book you through your link</div>
+            <div class="chip chip--a" data-parallax="0.14" data-aud="client"><span class="chip__icon"><svg><use href="#i-star"/></svg></span>Reviews from completed appointments</div>
+            <div class="chip chip--b" data-parallax="0.18" data-aud="client"><span class="chip__icon"><svg><use href="#i-refresh"/></svg></span>One free reschedule per booking</div>
           </div>
           <div class="hero__fade" aria-hidden="true"></div>
           <p class="sample-note hero__note--desk">Sample profiles shown</p>
         </div>
         <!-- Phones only: the two labels move under the phones so they never cover a screen -->
         <div class="hero__chips hero__chips--phone" aria-hidden="true">
-          <div class="chip"><span class="chip__icon"><svg><use href="#i-star"/></svg></span>Reviews from completed appointments</div>
-          <div class="chip"><span class="chip__icon"><svg><use href="#i-refresh"/></svg></span>One free reschedule per booking</div>
+          <div class="chip" data-aud="pro"><span class="chip__icon"><svg><use href="#i-percent"/></svg></span>No commission on your services</div>
+          <div class="chip" data-aud="pro"><span class="chip__icon"><svg><use href="#i-link"/></svg></span>Clients book you through your link</div>
+          <div class="chip" data-aud="client"><span class="chip__icon"><svg><use href="#i-star"/></svg></span>Reviews from completed appointments</div>
+          <div class="chip" data-aud="client"><span class="chip__icon"><svg><use href="#i-refresh"/></svg></span>One free reschedule per booking</div>
         </div>
         <p class="sample-note hero__note--phone">Sample profiles shown</p>
       </div>
@@ -260,12 +299,150 @@
       </div>
     </section>
 
-    <!-- ============ 01 FOR CLIENTS ============ -->
-    <section class="section section--deep" id="clients" aria-labelledby="clients-title">
+    <!-- ============ 01 FOR PROS ============ -->
+    <section class="section section--navy pros grain" id="pros" aria-labelledby="pros-title">
+      <div class="pros__glow" aria-hidden="true"></div>
+      <div class="container">
+        <div class="chapter">
+          <div class="chapter__head">
+            <p class="eyebrow reveal"><span class="eyebrow__num">01</span><span class="eyebrow__rule"></span>For pros</p>
+            <h2 class="title reveal" id="pros-title" aria-describedby="fees-note" style="--d:.06s">Keep 100% of <em>your fees</em><sup><a href="#fees-note" aria-label="Fee note">*</a></sup></h2>
+            <p class="lead reveal" style="--d:.12s">Your business, your rules. BookNStyle takes no commission on your bookings, and you set the policies, deposits and hours that work for you.</p>
+            <!-- Required with the headline above: keep this footnote next to it, always visible. -->
+            <p class="footnote" id="fees-note">*Card payments have Stripe processing fees; cash payments are 100% yours.</p>
+            <ul class="pillars" role="list">
+              <li class="pillar reveal"><strong>Zero commission</strong><span>No cut of your bookings.</span></li>
+              <li class="pillar reveal" style="--d:.06s"><strong>Payouts to your bank</strong><span>Automatic, through Stripe.</span></li>
+              <li class="pillar reveal" style="--d:.12s"><strong>Cash-only option</strong><span>Collect in person, keep every dollar.</span></li>
+            </ul>
+            <a class="claim reveal" href="waitlist/?role=pro" data-soon-only>
+              <span class="claim__label">Claim it before launch</span>
+              <span class="claim__url"><svg aria-hidden="true"><use href="#i-link"/></svg>app.booknstyle.com/book/<strong>yourname</strong><span class="claim__caret" aria-hidden="true"></span></span>
+              <span class="claim__go" aria-hidden="true"><svg><use href="#i-arrow"/></svg></span>
+            </a>
+          </div>
+          <div class="chapter__visual reveal">
+            <div class="trio">
+              <figure class="phone p-1" data-parallax="0.08">
+                <div class="float float--b"><div class="phone__frame">
+                  <img class="phone__screen" src="assets/screens/discover.webp" width="700" height="1521" alt="Discover screen, where clients browse pros by category with photos, specialties and star ratings." loading="lazy" decoding="async">
+                </div></div>
+              </figure>
+              <figure class="phone p-2" data-parallax="0.03">
+                <div class="float"><div class="phone__frame">
+                  <img class="phone__screen" src="assets/screens/profile.webp" width="700" height="1521" alt="A pro's profile with a rating, about section, portfolio photos and a Book now button." loading="lazy" decoding="async">
+                </div></div>
+              </figure>
+              <figure class="phone p-3" data-parallax="0.1">
+                <div class="float float--c"><div class="phone__frame">
+                  <img class="phone__screen" src="assets/screens/pro-calendar.webp" width="700" height="1521" alt="Pro schedule in month view, with the day's bookings listed below the calendar." loading="lazy" decoding="async">
+                </div></div>
+              </figure>
+            </div>
+            <p class="sample-note">Sample profiles shown</p>
+          </div>
+        </div>
+
+        <!-- Film P3 "No commission": same player as the clients film (C1, below), and soon-only for the same reason -->
+        <figure class="film reveal" data-film data-soon-only>
+          <div class="film__frame">
+            <picture>
+              <source media="(orientation: portrait) and (max-width: 1023px)" srcset="assets/video/p3-tall.webp" width="720" height="1280">
+              <img class="film__poster" src="assets/video/p3-wide.webp" width="1280" height="720" alt="" loading="lazy" decoding="async">
+            </picture>
+            <video class="film__video" muted playsinline loop preload="none" controls width="1280" height="720" data-start="6.2" aria-label="Short film: no commission on your services, and your clients stay yours." aria-describedby="film-p3-text">
+              <source src="assets/video/p3-tall.mp4" type="video/mp4" media="(orientation: portrait) and (max-width: 1023px)">
+              <source src="assets/video/p3-wide.mp4" type="video/mp4">
+            </video>
+            <div class="film__ctrls">
+              <button class="motion-toggle film__sound" type="button" aria-pressed="false" aria-label="Film sound" data-film-sound hidden>
+                <svg class="film__sound-off" aria-hidden="true"><use href="#i-sound-off"/></svg>
+                <svg class="film__sound-on" aria-hidden="true"><use href="#i-sound-on"/></svg>
+              </button>
+              <button class="motion-toggle film__toggle" type="button" aria-pressed="true" aria-label="Play film" data-film-toggle hidden>
+                <svg class="motion-toggle__pause" aria-hidden="true"><use href="#i-pause"/></svg>
+                <svg class="motion-toggle__play" aria-hidden="true"><use href="#i-play"/></svg>
+              </button>
+            </div>
+          </div>
+          <figcaption class="sr-only" id="film-p3-text">Many booking apps take a cut of every booking. BookNStyle takes no commission on your services, only standard card processing, and cash payments stay yours. Your clients stay yours, and your booking link and QR code let them book you directly. Sample profiles shown.</figcaption>
+        </figure>
+
+        <ul class="rows rows--3" role="list" aria-label="Tools for pros">
+          <li class="row reveal"><span class="row__icon" aria-hidden="true"><svg><use href="#i-qr"/></svg></span><h3>Booking link and QR code</h3><p>Share your link or print your QR code. Clients book you directly through it.</p></li>
+          <li class="row reveal" style="--d:.06s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-percent"/></svg></span><h3>Deposits, flat or percentage</h3><p>Require a deposit to hold the slot, on the services you choose.</p></li>
+          <li class="row reveal" style="--d:.12s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-shield"/></svg></span><h3>Your own policies</h3><p>Set your cancellation policy and how close to the appointment clients can reschedule.</p></li>
+          <li class="row reveal"><span class="row__icon" aria-hidden="true"><svg><use href="#i-clipboard"/></svg></span><h3>Custom intake forms</h3><p>Ask about allergies, skin details or treatment prep before the appointment.</p></li>
+          <li class="row reveal" style="--d:.06s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-image"/></svg></span><h3>Portfolio and service menu</h3><p>Show off your work next to the services you offer, all in one profile.</p></li>
+          <li class="row reveal" style="--d:.12s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-calendar"/></svg></span><h3>Hours and month calendar</h3><p>Set weekly business hours and see your bookings in a month view.</p></li>
+          <li class="row reveal"><span class="row__icon" aria-hidden="true"><svg><use href="#i-users"/></svg></span><h3>Client list</h3><p>Every client in one place, with their visits and last service.</p></li>
+          <li class="row reveal" style="--d:.06s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-list"/></svg></span><h3>Waitlist</h3><p>Clients can join your waitlist for popular times.</p></li>
+          <li class="row reveal" style="--d:.12s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-bell"/></svg></span><h3>Automatic reminders</h3><p>Reminders go out on their own and help reduce no-shows.</p></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ 02 SWITCHING APPS ============ -->
+    <!-- Aimed at pros who use another booking app today. No prices and no competitor names. -->
+    <section class="section section--ink section--tight-bottom" id="switch" aria-labelledby="switch-title">
+      <div class="container">
+        <div class="section-head section-head--split">
+          <div>
+            <p class="eyebrow reveal"><span class="eyebrow__num">02</span><span class="eyebrow__rule"></span>For pros on other apps</p>
+            <h2 class="title reveal" id="switch-title" style="--d:.06s">Switching booking apps? <em>Keep every client.</em></h2>
+          </div>
+          <p class="lead reveal" style="--d:.12s">Bring your business over without giving up a cut of it. Set up in minutes, share your link, and your clients book you the same day.</p>
+        </div>
+
+        <!-- Film P6 "Your link held": same player as the films above, and soon-only for the same reason -->
+        <figure class="film film--lead reveal" data-film data-soon-only>
+          <div class="film__frame">
+            <picture>
+              <source media="(orientation: portrait) and (max-width: 1023px)" srcset="assets/video/p6-tall.webp" width="720" height="1280">
+              <img class="film__poster" src="assets/video/p6-wide.webp" width="1280" height="720" alt="" loading="lazy" decoding="async">
+            </picture>
+            <video class="film__video" muted playsinline loop preload="none" controls width="1280" height="720" data-start="5" aria-label="Short film: thinking of switching booking apps? Claim your booking link now and it is held for you." aria-describedby="film-p6-text">
+              <source src="assets/video/p6-tall.mp4" type="video/mp4" media="(orientation: portrait) and (max-width: 1023px)">
+              <source src="assets/video/p6-wide.mp4" type="video/mp4">
+            </video>
+            <div class="film__ctrls">
+              <button class="motion-toggle film__sound" type="button" aria-pressed="false" aria-label="Film sound" data-film-sound hidden>
+                <svg class="film__sound-off" aria-hidden="true"><use href="#i-sound-off"/></svg>
+                <svg class="film__sound-on" aria-hidden="true"><use href="#i-sound-on"/></svg>
+              </button>
+              <button class="motion-toggle film__toggle" type="button" aria-pressed="true" aria-label="Play film" data-film-toggle hidden>
+                <svg class="motion-toggle__pause" aria-hidden="true"><use href="#i-pause"/></svg>
+                <svg class="motion-toggle__play" aria-hidden="true"><use href="#i-play"/></svg>
+              </button>
+            </div>
+          </div>
+          <figcaption class="sr-only" id="film-p6-text">Thinking of switching? Before you move: one link with your name on it, no commission on your services, and payouts sent automatically to your bank, with only standard card processing. Your link is held for you until 60 days after launch. Share it your way: text it, post it, or show the QR code, and set your deposit and late cancel policies, shown before clients book. Reminders go to you and your client. Launching soon in New York. Pros, claim your booking link. Sample booking link shown.</figcaption>
+        </figure>
+
+        <ul class="cards cards--3" role="list">
+          <li class="card reveal"><span class="card__n" aria-hidden="true">i.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-percent"/></svg></span><h3>No commission</h3><p>Not on your services, deposits, tips or cancellation fees.</p></li>
+          <li class="card reveal" style="--d:.06s"><span class="card__n" aria-hidden="true">ii.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-users"/></svg></span><h3>No new-client fees</h3><p>A client who finds you in the app is still your client.</p></li>
+          <li class="card reveal" style="--d:.12s"><span class="card__n" aria-hidden="true">iii.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-shield"/></svg></span><h3>Your rules</h3><p>Deposits, cancellation policy, reschedule cutoff and ID checks.</p></li>
+          <li class="card reveal"><span class="card__n" aria-hidden="true">iv.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-bell"/></svg></span><h3>Instant booking alerts</h3><p>Know the moment someone books you.</p></li>
+          <li class="card reveal" style="--d:.06s"><span class="card__n" aria-hidden="true">v.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-clipboard"/></svg></span><h3>Help with chargebacks</h3><p>We help you fight disputes with your booking records and the photos or notes you add.</p></li>
+          <li class="card reveal" style="--d:.12s"><span class="card__n" aria-hidden="true">vi.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-calendar"/></svg></span><h3>Set up in 10 minutes</h3><p>Add your services and hours, then share your link.</p></li>
+        </ul>
+        <div class="cta-row reveal">
+          <a class="btn btn--gold" href="#download" data-live-only hidden>Get the app</a>
+          <a class="btn btn--gold" href="waitlist/?role=pro" data-soon-only>Join the waitlist as a pro<svg class="btn__arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pro order only: in the client order For clients moves up and this line hides -->
+    <hr class="hairline" data-aud="pro" data-pro-rule>
+
+    <!-- ============ 03 FOR CLIENTS (moves up to 01 in the client version: main.js, Audience switch) ============ -->
+    <section class="section section--deep section--tight-top section--tight-bottom" id="clients" aria-labelledby="clients-title">
       <div class="container">
         <div class="chapter chapter--flip">
           <div class="chapter__head">
-            <p class="eyebrow reveal"><span class="eyebrow__num">01</span><span class="eyebrow__rule"></span>For clients</p>
+            <p class="eyebrow reveal"><span class="eyebrow__num">03</span><span class="eyebrow__rule"></span>For clients</p>
             <h2 class="title reveal" id="clients-title" style="--d:.06s">Your next appointment, <em>beautifully simple.</em></h2>
             <p class="lead reveal" style="--d:.12s">Find the right pro, book a time that works for you, and keep everything from confirmations to messages in one place.</p>
           </div>
@@ -290,6 +467,33 @@
             <p class="sample-note">Sample profiles shown</p>
           </div>
         </div>
+
+        <!-- Film C1 "Find your pro": a muted loop that plays only while on screen, with a speaker button for sound (main.js, Films). Wide on wider
+             screens, tall on portrait phones and tablets. It ends on "Launching soon" and the waitlist link, so it
+             is soon-only: re-render it for launch, then drop data-soon-only. -->
+        <figure class="film reveal" data-film data-soon-only>
+          <div class="film__frame">
+            <picture>
+              <source media="(orientation: portrait) and (max-width: 1023px)" srcset="assets/video/c1-tall.webp" width="720" height="1280">
+              <img class="film__poster" src="assets/video/c1-wide.webp" width="1280" height="720" alt="" loading="lazy" decoding="async">
+            </picture>
+            <video class="film__video" muted playsinline loop preload="none" controls width="1280" height="720" data-start="3.6" aria-label="Short film: find a pro near you, book in a few taps and get a reminder before every visit." aria-describedby="film-c1-text">
+              <source src="assets/video/c1-tall.mp4" type="video/mp4" media="(orientation: portrait) and (max-width: 1023px)">
+              <source src="assets/video/c1-wide.mp4" type="video/mp4">
+            </video>
+            <div class="film__ctrls">
+              <button class="motion-toggle film__sound" type="button" aria-pressed="false" aria-label="Film sound" data-film-sound hidden>
+                <svg class="film__sound-off" aria-hidden="true"><use href="#i-sound-off"/></svg>
+                <svg class="film__sound-on" aria-hidden="true"><use href="#i-sound-on"/></svg>
+              </button>
+              <button class="motion-toggle film__toggle" type="button" aria-pressed="true" aria-label="Play film" data-film-toggle hidden>
+                <svg class="motion-toggle__pause" aria-hidden="true"><use href="#i-pause"/></svg>
+                <svg class="motion-toggle__play" aria-hidden="true"><use href="#i-play"/></svg>
+              </button>
+            </div>
+          </div>
+          <figcaption class="sr-only" id="film-c1-text">A search for a silk press shows three pros nearby, with ratings and distance. A pro's profile shows reviews from completed appointments, then open times, a booking confirmed for Saturday at 10:00 AM, and a reminder before the visit. Sample profiles shown.</figcaption>
+        </figure>
 
         <ul class="rows rows--3" role="list">
           <li class="row reveal">
@@ -326,90 +530,6 @@
       </div>
     </section>
 
-    <!-- ============ 02 FOR PROS ============ -->
-    <section class="section section--navy pros grain" id="pros" aria-labelledby="pros-title">
-      <div class="pros__glow" aria-hidden="true"></div>
-      <div class="container">
-        <div class="chapter">
-          <div class="chapter__head">
-            <p class="eyebrow reveal"><span class="eyebrow__num">02</span><span class="eyebrow__rule"></span>For pros</p>
-            <h2 class="title reveal" id="pros-title" aria-describedby="fees-note" style="--d:.06s">Keep 100% of <em>your fees</em><sup><a href="#fees-note" aria-label="Fee note">*</a></sup></h2>
-            <p class="lead reveal" style="--d:.12s">Your business, your rules. BookNStyle takes no commission on your bookings, and you set the policies, deposits and hours that work for you.</p>
-            <!-- Required with the headline above: keep this footnote next to it, always visible. -->
-            <p class="footnote" id="fees-note">*Card payments have Stripe processing fees; cash payments are 100% yours.</p>
-            <ul class="pillars" role="list">
-              <li class="pillar reveal"><strong>Zero commission</strong><span>No cut of your bookings.</span></li>
-              <li class="pillar reveal" style="--d:.06s"><strong>Payouts to your bank</strong><span>Automatic, through Stripe.</span></li>
-              <li class="pillar reveal" style="--d:.12s"><strong>Cash-only option</strong><span>Collect in person, keep every dollar.</span></li>
-            </ul>
-            <a class="claim reveal" href="waitlist/?role=pro" data-soon-only>
-              <span class="claim__label">Claim it before launch</span>
-              <span class="claim__url"><svg aria-hidden="true"><use href="#i-link"/></svg>app.booknstyle.com/book/<strong>yourname</strong><span class="claim__caret" aria-hidden="true"></span></span>
-              <span class="claim__go" aria-hidden="true"><svg><use href="#i-arrow"/></svg></span>
-            </a>
-          </div>
-          <div class="chapter__visual reveal">
-            <div class="trio">
-              <figure class="phone p-1" data-parallax="0.08">
-                <div class="float float--b"><div class="phone__frame">
-                  <img class="phone__screen" src="assets/screens/pro-calendar.webp" width="700" height="1521" alt="Pro schedule in month view, with the day's bookings listed below the calendar." loading="lazy" decoding="async">
-                </div></div>
-              </figure>
-              <figure class="phone p-2" data-parallax="0.03">
-                <div class="float"><div class="phone__frame">
-                  <img class="phone__screen" src="assets/screens/pro-clients.webp" width="700" height="1521" alt="Clients screen: every client in one place, with their visits and last service." loading="lazy" decoding="async">
-                </div></div>
-              </figure>
-              <figure class="phone p-3" data-parallax="0.1">
-                <div class="float float--c"><div class="phone__frame">
-                  <img class="phone__screen" src="assets/screens/pro-invite.webp" width="700" height="1521" alt="Invite Clients screen with a personal booking link and a QR code." loading="lazy" decoding="async">
-                </div></div>
-              </figure>
-            </div>
-            <p class="sample-note">Sample profiles shown</p>
-          </div>
-        </div>
-
-        <ul class="rows rows--3" role="list" aria-label="Tools for pros">
-          <li class="row reveal"><span class="row__icon" aria-hidden="true"><svg><use href="#i-qr"/></svg></span><h3>Booking link and QR code</h3><p>Share your link or print your QR code. Clients book you directly through it.</p></li>
-          <li class="row reveal" style="--d:.06s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-percent"/></svg></span><h3>Deposits, flat or percentage</h3><p>Require a deposit to hold the slot, on the services you choose.</p></li>
-          <li class="row reveal" style="--d:.12s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-shield"/></svg></span><h3>Your own policies</h3><p>Set your cancellation policy and how close to the appointment clients can reschedule.</p></li>
-          <li class="row reveal"><span class="row__icon" aria-hidden="true"><svg><use href="#i-clipboard"/></svg></span><h3>Custom intake forms</h3><p>Ask about allergies, skin details or treatment prep before the appointment.</p></li>
-          <li class="row reveal" style="--d:.06s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-image"/></svg></span><h3>Portfolio and service menu</h3><p>Show off your work next to the services you offer, all in one profile.</p></li>
-          <li class="row reveal" style="--d:.12s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-calendar"/></svg></span><h3>Hours and month calendar</h3><p>Set weekly business hours and see your bookings in a month view.</p></li>
-          <li class="row reveal"><span class="row__icon" aria-hidden="true"><svg><use href="#i-users"/></svg></span><h3>Client list</h3><p>Every client in one place, with their visits and last service.</p></li>
-          <li class="row reveal" style="--d:.06s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-list"/></svg></span><h3>Waitlist</h3><p>Clients can join your waitlist for popular times.</p></li>
-          <li class="row reveal" style="--d:.12s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-bell"/></svg></span><h3>Automatic reminders</h3><p>Reminders go out on their own and help reduce no-shows.</p></li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- ============ 03 SWITCHING APPS ============ -->
-    <!-- Aimed at pros who use another booking app today. No prices and no competitor names. -->
-    <section class="section section--ink section--tight-bottom" id="switch" aria-labelledby="switch-title">
-      <div class="container">
-        <div class="section-head section-head--split">
-          <div>
-            <p class="eyebrow reveal"><span class="eyebrow__num">03</span><span class="eyebrow__rule"></span>For pros on other apps</p>
-            <h2 class="title reveal" id="switch-title" style="--d:.06s">Switching booking apps? <em>Keep every client.</em></h2>
-          </div>
-          <p class="lead reveal" style="--d:.12s">Bring your business over without giving up a cut of it. Set up in minutes, share your link, and your clients book you the same day.</p>
-        </div>
-        <ul class="cards cards--3" role="list">
-          <li class="card reveal"><span class="card__n" aria-hidden="true">i.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-percent"/></svg></span><h3>No commission</h3><p>Not on your services, deposits, tips or cancellation fees.</p></li>
-          <li class="card reveal" style="--d:.06s"><span class="card__n" aria-hidden="true">ii.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-users"/></svg></span><h3>No new-client fees</h3><p>A client who finds you in the app is still your client.</p></li>
-          <li class="card reveal" style="--d:.12s"><span class="card__n" aria-hidden="true">iii.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-shield"/></svg></span><h3>Your rules</h3><p>Deposits, cancellation policy, reschedule cutoff and ID checks.</p></li>
-          <li class="card reveal"><span class="card__n" aria-hidden="true">iv.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-bell"/></svg></span><h3>Instant booking alerts</h3><p>Know the moment someone books you.</p></li>
-          <li class="card reveal" style="--d:.06s"><span class="card__n" aria-hidden="true">v.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-clipboard"/></svg></span><h3>Help with chargebacks</h3><p>We help you fight disputes with your booking records and the photos or notes you add.</p></li>
-          <li class="card reveal" style="--d:.12s"><span class="card__n" aria-hidden="true">vi.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-calendar"/></svg></span><h3>Set up in 10 minutes</h3><p>Add your services and hours, then share your link.</p></li>
-        </ul>
-        <div class="cta-row reveal">
-          <a class="btn btn--gold" href="#download" data-live-only hidden>Get the app</a>
-          <a class="btn btn--gold" href="waitlist/?role=pro" data-soon-only>Join the waitlist as a pro<svg class="btn__arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-        </div>
-      </div>
-    </section>
-
     <hr class="hairline">
 
     <!-- ============ 04 HOW IT WORKS ============ -->
@@ -421,23 +541,23 @@
         </div>
         <div class="tabs" data-tabs>
           <div class="tabs__list reveal" role="tablist" aria-label="How it works">
-            <button class="tab" type="button" role="tab" id="tab-clients" aria-controls="panel-clients" aria-selected="true">For clients</button>
-            <button class="tab" type="button" role="tab" id="tab-pros" aria-controls="panel-pros" aria-selected="false" tabindex="-1">For pros</button>
+            <button class="tab" type="button" role="tab" id="tab-pros" aria-controls="panel-pros" aria-selected="true">For pros</button>
+            <button class="tab" type="button" role="tab" id="tab-clients" aria-controls="panel-clients" aria-selected="false" tabindex="-1">For clients</button>
           </div>
-          <div class="tabpanel" role="tabpanel" id="panel-clients" aria-labelledby="tab-clients" tabindex="0">
-            <h3 class="tabpanel__title">For clients</h3>
-            <ol class="steps" role="list">
-              <li class="step reveal"><span class="step__num" aria-hidden="true">01</span><h4>Find your pro</h4><p>Browse by category or search by name or city. Look through portfolios and reviews before you choose.</p></li>
-              <li class="step reveal" style="--d:.08s"><span class="step__num" aria-hidden="true">02</span><h4>Book a time</h4><p>Pick a service and an open time. Pay by card in the app or in person, depending on the pro.</p></li>
-              <li class="step reveal" style="--d:.16s"><span class="step__num" aria-hidden="true">03</span><h4>Show up, get styled</h4><p>Get reminders, message your pro, and reschedule once for free if your plans change.</p></li>
-            </ol>
-          </div>
-          <div class="tabpanel" role="tabpanel" id="panel-pros" aria-labelledby="tab-pros" tabindex="0" hidden>
+          <div class="tabpanel" role="tabpanel" id="panel-pros" aria-labelledby="tab-pros" tabindex="0">
             <h3 class="tabpanel__title">For pros</h3>
             <ol class="steps" role="list">
-              <li class="step"><span class="step__num" aria-hidden="true">01</span><h4>Set up your studio</h4><p>Add your services, portfolio and weekly hours, then set your deposits and cancellation policy.</p></li>
-              <li class="step"><span class="step__num" aria-hidden="true">02</span><h4>Share your link</h4><p>Send your booking link or QR code to the clients you already have, or post it on social.</p></li>
-              <li class="step"><span class="step__num" aria-hidden="true">03</span><h4>Get booked, get paid</h4><p>Clients book and get reminders automatically. Card payments pay out to your bank through Stripe.</p></li>
+              <li class="step reveal"><span class="step__num" aria-hidden="true">01</span><h4>Set up your studio</h4><p>Add your services, portfolio and weekly hours, then set your deposits and cancellation policy.</p></li>
+              <li class="step reveal" style="--d:.08s"><span class="step__num" aria-hidden="true">02</span><h4>Share your link</h4><p>Send your booking link or QR code to the clients you already have, or post it on social.</p></li>
+              <li class="step reveal" style="--d:.16s"><span class="step__num" aria-hidden="true">03</span><h4>Get booked, get paid</h4><p>Clients book and get reminders automatically. Card payments pay out to your bank through Stripe.</p></li>
+            </ol>
+          </div>
+          <div class="tabpanel" role="tabpanel" id="panel-clients" aria-labelledby="tab-clients" tabindex="0" hidden>
+            <h3 class="tabpanel__title">For clients</h3>
+            <ol class="steps" role="list">
+              <li class="step"><span class="step__num" aria-hidden="true">01</span><h4>Find your pro</h4><p>Browse by category or search by name or city. Look through portfolios and reviews before you choose.</p></li>
+              <li class="step"><span class="step__num" aria-hidden="true">02</span><h4>Book a time</h4><p>Pick a service and an open time. Pay by card in the app or in person, depending on the pro.</p></li>
+              <li class="step"><span class="step__num" aria-hidden="true">03</span><h4>Show up, get styled</h4><p>Get reminders, message your pro, and reschedule once for free if your plans change.</p></li>
             </ol>
           </div>
         </div>
@@ -560,8 +680,8 @@
       <nav class="footer-col" aria-label="Explore">
         <h2 class="footer-title">Explore</h2>
         <ul role="list">
-          <li><a href="#clients">For clients</a></li>
           <li><a href="#pros">For pros</a></li>
+          <li><a href="#clients">For clients</a></li>
           <li><a href="#how">How it works</a></li>
           <li><a href="#faq">FAQ</a></li>
           <li data-soon-only><a href="waitlist/">Join the waitlist</a></li>

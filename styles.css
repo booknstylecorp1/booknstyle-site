@@ -428,9 +428,43 @@ a.store-badge:hover { transform: translateY(-2px); }
 .hero__inner { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .hero .gr--hero { --h: clamp(54px, 2vw + 44px, 74px); margin-bottom: clamp(14px, 1.4vw, 20px); }
 .hero__kicker { margin-bottom: clamp(14px, 1.3vw, 18px); }
+
+/* Audience switch: pros first, clients one tap away (main.js, Audience switch). The pro version
+   shows by default; html.aud-client (a tap here, or a ?for=clients link) shows the client version. */
+html:not(.aud-client) [data-aud="client"], html.aud-client [data-aud="pro"] { display: none !important; }
+.hero__line { display: block; }
+.aud {
+  position: relative; display: inline-grid; grid-template-columns: 1fr 1fr; padding: 4px; margin-bottom: clamp(18px, 1.6vw, 24px);
+  border-radius: 999px; border: 1px solid var(--line); background: rgba(10, 11, 17, .45);
+}
+.aud::before {
+  content: ""; position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 999px;
+  background: var(--grad-gold); box-shadow: 0 8px 22px -10px rgba(200, 149, 106, .6);
+  transition: transform .55s var(--ease-out);
+}
+html.aud-client .aud::before { transform: translateX(100%); }
+.aud__opt {
+  position: relative; z-index: 1; border: 0; background: none; padding: 10px 24px; border-radius: 999px; cursor: pointer;
+  font: inherit; font-size: .875rem; font-weight: 600; letter-spacing: .01em; white-space: nowrap; color: var(--text-2); transition: color .35s;
+}
+.aud__opt:hover { color: var(--text); }
+html:not(.aud-client) .aud__opt[data-aud-set="pro"], html.aud-client .aud__opt[data-aud-set="client"] { color: var(--ink-text); }
+html:not(.js) .aud { display: none; }
+@media (max-width: 379px) { .aud__opt { padding-inline: 18px; } }
+/* After a tap, the new version comes in quickly instead of replaying the slow opening. Fill "backwards"
+   and the translate property (not transform), so parallax and the phones' own positions are untouched.
+   It runs even with "Pause animations" on (a one-time half-second change the visitor asked for, not a
+   loop), since a paused swap would hold the new version at opacity 0. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero.is-switched [data-aud] { animation: aud-fade .5s var(--ease-out) backwards; }
+  .hero.is-switched .hero__line, .hero.is-switched .btn[data-aud], .hero.is-switched .chip[data-aud] { animation-name: aud-rise; }
+  .motion-paused .hero.is-switched [data-aud] { animation-play-state: running !important; }
+}
+@keyframes aud-fade { from { opacity: 0; } }
+@keyframes aud-rise { from { opacity: 0; translate: 0 14px; } }
 @media (max-width: 479px) { .hero__kicker { letter-spacing: .2em; gap: 10px; } .hero__kicker .eyebrow__rule { width: 18px; } }
 .hero h1 { max-width: 12em; }
-.hero .lead { margin-top: clamp(16px, 1.4vw, 20px); margin-inline: auto; max-width: 34em; }
+.hero .lead { margin-top: clamp(16px, 1.4vw, 20px); margin-inline: auto; max-width: 34em; text-wrap: pretty; }
 .hero__ctas { margin-top: clamp(24px, 2vw, 28px); display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 .hero__strip { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 22px; }
 .hero__meta { display: flex; flex-wrap: wrap; justify-content: center; row-gap: 6px; font-size: .8125rem; color: var(--text-3); letter-spacing: .02em; }
@@ -547,6 +581,46 @@ a.store-badge:hover { transform: translateY(-2px); }
 .mock-chat__b { max-width: 86%; padding: 9px 12px; border-radius: 14px; }
 .mock-chat__b--me { justify-self: end; background: var(--cream); color: var(--ink-text); border-bottom-right-radius: 4px; }
 .mock-chat__b--them { background: rgba(245, 244, 238, .08); color: var(--cream); border-bottom-left-radius: 4px; }
+
+/* Films under the chapters: wide on wider screens, tall on portrait phones and
+   tablets (keep this media query in step with TALL_FILM in main.js), always
+   short enough to fit on screen. The poster sits under the video, so the first
+   frame takes over from it seamlessly. */
+.film { position: relative; margin: clamp(2.75rem, 2rem + 3vw, 4.5rem) auto 0; width: min(100%, max(420px, calc((100vh - 160px) * 16 / 9))); width: min(100%, max(420px, calc((100svh - 160px) * 16 / 9))); }
+.film__frame {
+  position: relative; isolation: isolate; overflow: hidden; aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg); background: #0E0D16;
+  box-shadow: 0 0 0 1px var(--line), 0 50px 90px -40px rgba(0, 0, 0, .85), 0 30px 70px -45px rgba(200, 149, 106, .35);
+}
+.film__poster, .film__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.film__frame picture { border-radius: inherit; } /* the poster inherits through it (landscape phones show the frame unclipped) */
+.film__video { background: transparent; }
+.js .film__video { cursor: pointer; }
+.film__ctrls { position: absolute; right: 14px; bottom: 14px; z-index: 2; display: flex; align-items: center; gap: 10px; }
+.film__ctrls .motion-toggle { background: rgba(10, 11, 17, .62); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.film__ctrls .motion-toggle:hover { background: rgba(22, 24, 43, .85); }
+/* Sound starts off (browsers block sound until a tap); the speaker turns it on for this film only */
+.film__sound svg { width: 17px; height: 17px; }
+.film__sound-on { display: none; }
+.film__sound[aria-pressed="true"] { border-color: var(--champ-l); }
+.film__sound[aria-pressed="true"] .film__sound-off { display: none; }
+.film__sound[aria-pressed="true"] .film__sound-on { display: block; }
+/* P6 sits between its section heading and the cards */
+.film--lead { margin-top: 0; margin-bottom: clamp(2.75rem, 2rem + 3vw, 4.5rem); }
+/* Landscape phones: the film is short, so its buttons sit just under it instead of over its words */
+@media (orientation: landscape) and (max-height: 500px) {
+  .film__frame { overflow: visible; }
+  .film__ctrls { top: calc(100% + 10px); bottom: auto; right: 4px; }
+  .film, .film--lead { margin-bottom: 76px; }
+}
+/* No autoplay (reduced motion, Data Saver, or the browser refused): a larger gold play button,
+   still in the corner so it never covers the film's words */
+.film.is-manual .film__toggle { width: 56px; height: 56px; border: 0; background: var(--grad-gold); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 10px 30px -12px rgba(200, 149, 106, .65), inset 0 1px 0 rgba(255, 255, 255, .35); }
+.film.is-manual .film__toggle svg { width: 20px; height: 20px; stroke: var(--ink-text); translate: 1px 0; }
+@media (orientation: portrait) and (max-width: 1023px) {
+  .film { width: min(100%, 400px, calc((100vh - 150px) * 9 / 16)); width: min(100%, 400px, calc((100svh - 150px) * 9 / 16)); }
+  .film__frame { aspect-ratio: 9 / 16; border-radius: var(--radius); }
+}
 
 /* Editorial feature list: rows with hairlines */
 .rows { margin-top: clamp(2.75rem, 2rem + 3vw, 4.5rem); display: grid; grid-template-columns: 1fr; border-top: 1px solid var(--line-soft); }

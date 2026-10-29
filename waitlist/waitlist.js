@@ -2,7 +2,7 @@
    Sends the form to the waitlist-join edge function, then shows "You're in."
    with the share link and share buttons, the Founding badges, the client's
    "3 friends, first booking fee on us" progress, the pro's claimed booking
-   link or the client's "ask them to join" message, and a story image drawn
+   link or the client's "Message @handle" cards, and a story image drawn
    right here. Never shows a place in line (owner, Oct 26 2026).
    Server side: supabase/functions/waitlist-join and waitlist-info,
    migrations 052 and 053. */
@@ -30,10 +30,10 @@
     client: "I just joined the BookNStyle waitlist. It's a new app for booking barbers, stylists, nail and lash techs and more. Join with my link:",
     pro: "I just joined the BookNStyle waitlist. It's a new booking app for beauty pros, with no commission on bookings. Join with my link:",
   };
-  // "Ask them to join": the message a client sends the pros they named, with
-  // their link (?ref=CODE&role=pro&utm_campaign=<id>) after it. Each browser
-  // gets one of these at random and keeps it, so a client always sees the
-  // same message. The id rides on the link, so the waitlist export's
+  // "Let your pro know": the message a client sends each pro they named, with
+  // their pro invite link (?ref=CODE&role=pro&utm_campaign=<id>) after it.
+  // Each browser gets one of these at random and keeps it, so a client always
+  // sees the same message. The id rides on the link, so the waitlist export's
   // utm_campaign column shows which message brought each pro in.
   // Owner-approved wording, Oct 26 and 27 2026.
   const ASK_TEXTS = [
@@ -42,6 +42,7 @@
     { id: 'ask_thought', text: "Saw this and thought of you. BookNStyle is launching in NYC and pros can claim their booking link now. I'd book you on it in a heartbeat:" },
     { id: 'ask_clients', text: "Your clients are joining BookNStyle. I just did. Claim your booking link so we can book you there:" },
   ];
+  const PRO_INVITE_FALLBACK = 'https://booknstyle.com/waitlist?role=pro&utm_source=client_invite';
 
   // What each app button says after it shares the story image (or saves it,
   // where the browser can't share files) and copies the link. None of these
@@ -122,7 +123,7 @@
   const refField = $('[data-wl-ref]');
   refField.value = (CODE.test(urlRef) && urlRef !== mine ? urlRef : (savedRef && CODE.test(savedRef) && savedRef !== mine ? savedRef : ''));
 
-  // A pro who opened a client's "Ask them to join" link (?ref=CODE&role=pro):
+  // A pro who opened a client's "Message your pro" link (?ref=CODE&role=pro):
   // say why they're here. Before launch only (it talks about launch).
   const proHook = $('[data-wl-pro-hook]');
   if (proHook && CODE.test(urlRef) && urlRef !== mine && (params.get('role') || '').toLowerCase() === 'pro' && !isLive()) {
@@ -745,7 +746,7 @@
     }
   });
 
-  // ----- Client: ask the pros they named -----
+  // ----- Client: let the pros they named know -----
   function pickAskText() {
     let pick = ASK_TEXTS.find((a) => a.id === store.get(KEYS.ask));
     if (!pick) {
@@ -754,32 +755,80 @@
     }
     return pick;
   }
+  // Their pro invite link: the share link with role=pro (as in the welcome
+  // email, plus the message's utm_campaign), or the plain pro page if no code
+  // is known.
+  const proInviteUrl = (id) => {
+    const code = String(current.referral_code || '').toUpperCase();
+    const base = CODE.test(code) ? current.share_url + (current.share_url.includes('?') ? '&' : '?') + 'role=pro' : PRO_INVITE_FALLBACK;
+    return base + '&utm_campaign=' + id;
+  };
+  // Starts the copy inside the tap, before the profile opens (iOS only lets a
+  // page write the clipboard during a tap). If that fails, the old-style copy
+  // runs from the message box; the box stays open, selected, only if that
+  // fails too, so it can be copied by hand.
+  async function copyForPro(msg) {
+    const manual = $('[data-wl-ask-manual]');
+    const box = $('[data-wl-ask-msg]');
+    try {
+      await navigator.clipboard.writeText(msg);
+      manual.hidden = true;
+      return true;
+    } catch {
+      box.value = msg;
+      manual.hidden = false; // a hidden box can't be selected
+      box.focus({ preventScroll: true });
+      box.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch {}
+      manual.hidden = ok;
+      return ok;
+    }
+  }
+  function proCard(n, msg) {
+    const tiktok = n.platform === 'tiktok';
+    const where = tiktok ? 'TikTok' : 'Instagram';
+    const profile = tiktok ? `https://www.tiktok.com/@${n.handle}` : `https://www.instagram.com/${n.handle}/`;
+    const note = h('p', { class: 'wl-status wl-pro__status', role: 'status', 'aria-live': 'polite' });
+    // A plain link, not window.open: Instagram's in-app browser blocks
+    // pop-ups. The copy runs in its click, with no preventDefault, so the
+    // profile still opens.
+    const open = h('a', { class: 'btn btn--gold btn--sm wl-pro__msg', href: profile, target: '_blank', rel: 'noopener' }, [
+      icon('i-send'), h('span', { text: 'Message @' + n.handle }), h('span', { class: 'wl-sr', text: `, copies a message and opens their ${where} profile` }),
+    ]);
+    open.addEventListener('click', async () => {
+      $$('.wl-pro__status', $('[data-wl-ask-list]')).forEach((s) => { s.textContent = ''; });
+      note.textContent = (await copyForPro(msg))
+        ? 'Message copied. Tap Message on their profile and paste it.'
+        : 'Copy the message below, then tap Message on their profile and paste it.';
+    });
+    const actions = h('div', { class: 'wl-pro__actions' }, [open]);
+    const data = { text: msg };
+    // Text messages, WhatsApp and the rest: the phone's share sheet.
+    if (navigator.share && (!navigator.canShare || navigator.canShare(data))) {
+      const share = h('button', { class: 'wl-share__btn wl-pro__share', type: 'button', 'aria-label': `Share the message for @${n.handle}` }, [icon('i-share'), h('span', { text: 'Share' })]);
+      share.addEventListener('click', async () => { try { await navigator.share(data); } catch { /* closed */ } });
+      actions.append(share);
+    }
+    return h('li', { class: 'wl-pro' }, [
+      h('span', { class: 'wl-pro__who' }, [h('strong', { text: '@' + n.handle }), h('small', { text: where })]),
+      actions,
+      note,
+    ]);
+  }
   const lateNoms = nomList($('[data-wl-noms-late]'), $('[data-wl-add-nom-late]'), 'wl-noms-late-err');
   function renderAsk(isClient) {
-    const list = Array.isArray(current.nominations) ? current.nominations : [];
+    const list = (Array.isArray(current.nominations) ? current.nominations : []).filter((n) => n && SOCIAL.test(n.handle || ''));
     const ask = $('[data-wl-ask]');
     const late = $('[data-wl-nominate-late]');
     ask.hidden = !isClient || !list.length;
     late.hidden = !isClient || list.length > 0 || !isOwner();
     if (!isClient) return;
     const askText = pickAskText();
-    const proUrl = current.share_url + (current.share_url.includes('?') ? '&' : '?') + 'role=pro&utm_campaign=' + askText.id;
-    const msg = `${askText.text} ${proUrl}`;
+    const msg = `${askText.text} ${proInviteUrl(askText.id)}`;
     $('[data-wl-ask-msg]').value = msg;
-    $('[data-wl-ask-list]').replaceChildren(...list.map((n) => {
-      const link = n.platform === 'tiktok' ? `https://www.tiktok.com/@${n.handle}` : `https://www.instagram.com/${n.handle}/`;
-      return h('li', {}, [
-        h('span', {}, [h('strong', { text: '@' + n.handle }), h('small', { text: n.platform === 'tiktok' ? 'TikTok' : 'Instagram' })]),
-        h('a', { href: link, target: '_blank', rel: 'noopener', text: 'Open profile' }),
-      ]);
-    }));
-    const shareBtn = $('[data-wl-ask-share]');
-    const data = { text: msg };
-    shareBtn.hidden = !(navigator.share && (!navigator.canShare || navigator.canShare(data)));
-    shareBtn.onclick = async () => { try { await navigator.share(data); } catch { /* closed */ } };
-    $('[data-wl-ask-copy]').onclick = async () => {
-      say((await copy(msg, $('[data-wl-ask-msg]'))) ? 'Message copied. Paste it into a DM.' : 'Press and hold the message to copy it.');
-    };
+    $('[data-wl-ask-manual]').hidden = true;
+    $('[data-wl-ask-list]').replaceChildren(...list.map((n) => proCard(n, msg)));
   }
   $('[data-wl-nom-form]').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -794,7 +843,9 @@
       const { ok, status: code, data } = await post({ action: 'update', manage_token: store.get(KEYS.key), nominations: n.list });
       if (ok && data && data.referral_code) {
         showSuccess({ ...data, already_joined: current.already_joined }, { role: current.role, region: current.region, city: current.city });
-        say('Thanks. Now ask them to join.');
+        say('Thanks. Now let them know.');
+        // The late panel is gone now: keep focus with their new cards.
+        if (!$('[data-wl-ask]').hidden) $('#wl-ask-title').focus();
         return;
       }
       if (code === 404) { forget(); return; }

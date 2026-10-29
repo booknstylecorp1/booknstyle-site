@@ -90,6 +90,8 @@ const STORE_LINKS = {
   if (parallaxEls.length && 'IntersectionObserver' in window) {
     const pio = new IntersectionObserver((entries) => {
       entries.forEach((e) => (e.isIntersecting ? visible.add(e.target) : visible.delete(e.target)));
+      // Elements that just appeared (the hero swap) take their offset now, not on the next scroll
+      if (!ticking) { ticking = true; window.requestAnimationFrame(onFrame); }
     }, { rootMargin: '20% 0px 20% 0px' });
     parallaxEls.forEach((el) => pio.observe(el));
   }
@@ -145,6 +147,125 @@ const STORE_LINKS = {
     document.querySelectorAll('main > section[id]').forEach((s) => spy.observe(s));
   }
 
+  /* ---------- Films (For pros, Switching, For clients) ----------
+     Muted loops: the file loads when the film nears the screen, plays while it is on screen and pauses
+     when it leaves. The speaker button turns sound on for one film at a time (browsers allow sound only
+     after a tap, so it always starts muted). Tall film on portrait phones and tablets, wide otherwise, landscape phones included
+     (the same media query as .film in styles.css and the <source media> fallback in index.html). No
+     autoplay with reduced motion or Data Saver, or when the browser refuses it: the poster shows with a
+     play button instead. If the file fails to load, the poster stays as a still and the button goes. */
+  const TALL_FILM = '(orientation: portrait) and (max-width: 1023px)';
+  const tallFilm = window.matchMedia(TALL_FILM);
+  const saveData = Boolean(navigator.connection && navigator.connection.saveData);
+  const canWatch = 'IntersectionObserver' in window;
+  const films = [];
+
+  document.querySelectorAll('[data-film]').forEach((el) => {
+    const video = el.querySelector('video');
+    const button = el.querySelector('[data-film-toggle]');
+    const sound = el.querySelector('[data-film-sound]');
+    const tall = video && video.querySelector('source[media]');
+    const wide = video && video.querySelector('source:not([media])');
+    if (!button || !tall || !wide) return;
+
+    const start = parseFloat(video.dataset.start) || 0; // the poster's frame, so play picks up right where it is
+    let wants = canWatch && !reduceMotion && !saveData; // play whenever on screen
+    let onScreen = false;
+    let held = false; // the page-wide "Pause animations" button is on
+
+    video.muted = true; // the property as well as the attribute (iOS Safari, in-app browsers)
+    video.removeAttribute('controls');
+    button.hidden = false;
+    if (sound) sound.hidden = false;
+    el.classList.toggle('is-manual', !wants);
+
+    const load = () => {
+      const src = (tallFilm.matches ? tall : wide).getAttribute('src');
+      if (video.getAttribute('src') === src) return;
+      const at = video.getAttribute('src') ? video.currentTime : start;
+      video.src = src;
+      video.addEventListener('loadedmetadata', () => { video.currentTime = at; }, { once: true });
+    };
+    const play = () => {
+      load();
+      const p = video.play();
+      if (p && p.catch) {
+        p.catch((err) => {
+          if (!err || err.name !== 'NotAllowedError') return;
+          // Sound refused without a fresh tap (some browsers, coming back on screen): keep playing muted
+          if (!video.muted) { video.muted = true; play(); return; }
+          // Autoplay refused (Low Power Mode, some in-app browsers): wait for a tap instead
+          wants = false; el.classList.add('is-manual');
+        });
+      }
+    };
+    const sync = () => {
+      if (onScreen && wants && !held) play();
+      else if (!video.paused) video.pause();
+    };
+    const setState = () => {
+      const paused = video.paused;
+      button.setAttribute('aria-pressed', String(paused));
+      button.setAttribute('aria-label', paused ? 'Play film' : 'Pause film');
+      if (!paused) el.classList.remove('is-manual');
+    };
+    video.addEventListener('play', setState);
+    video.addEventListener('pause', setState);
+    // JS sets video.src, so a failed load (404, dropped connection) fires here, not on the <source>s
+    video.addEventListener('error', () => {
+      wants = false; button.hidden = true; el.classList.remove('is-manual');
+      if (sound) sound.hidden = true;
+    });
+
+    const toggle = () => {
+      if (video.paused) { wants = true; held = false; play(); } else { wants = false; video.pause(); }
+    };
+    button.addEventListener('click', toggle);
+    video.addEventListener('click', toggle);
+
+    if (sound) {
+      const syncSound = () => sound.setAttribute('aria-pressed', String(!video.muted));
+      video.addEventListener('volumechange', syncSound);
+      sound.addEventListener('click', () => {
+        if (!video.muted) { video.muted = true; syncSound(); return; }
+        films.forEach((f) => { if (f.el !== el) f.mute(); }); // one film with sound at a time
+        video.muted = false;
+        wants = true; held = false; play(); // sound on means play it, inside the tap so the browser allows sound
+        syncSound(); // set it here too: a film's first load drops the queued volumechange event
+      });
+    }
+
+    films.push({
+      el,
+      near: () => { if (wants) { video.preload = 'auto'; load(); } },
+      seen: (on) => { onScreen = on; sync(); },
+      hold: (on) => { held = on; sync(); },
+      mute: () => { video.muted = true; },
+      // Phone turned or window resized across the breakpoint: swap the film if it has started loading
+      swap: () => { if (video.getAttribute('src')) { load(); sync(); } },
+    });
+  });
+
+  if (films.length && canWatch) {
+    const byEl = new Map(films.map((f) => [f.el, f]));
+    const nearIo = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        byEl.get(entry.target).near();
+        nearIo.unobserve(entry.target);
+      });
+    }, { rootMargin: '75% 0px 75% 0px' });
+    const seenIo = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const film = byEl.get(entry.target);
+        if (entry.intersectionRatio >= 0.35) film.seen(true);
+        else if (!entry.isIntersecting) film.seen(false);
+      });
+    }, { threshold: [0, 0.35] });
+    films.forEach((f) => { nearIo.observe(f.el); seenIo.observe(f.el); });
+    tallFilm.addEventListener('change', () => films.forEach((f) => f.swap()));
+  }
+
   /* ---------- Pause / play looping animations (WCAG 2.2.2) ---------- */
   const motionToggle = document.querySelector('[data-motion-toggle]');
   const motionCell = document.querySelector('[data-motion-cell]');
@@ -155,6 +276,7 @@ const STORE_LINKS = {
       motionToggle.setAttribute('aria-pressed', String(paused));
       motionToggle.setAttribute('aria-label', paused ? 'Play animations' : 'Pause animations');
       root.classList.toggle('motion-paused', paused);
+      films.forEach((f) => f.hold(paused)); // the films pause with everything else
     });
   }
 
@@ -183,6 +305,48 @@ const STORE_LINKS = {
     });
     select(0, false);
   });
+
+  /* ---------- Audience switch: pros first, clients one tap away ----------
+     The page leads with pros. "I'm a client" (or a link with ?for=clients, which the inline script in
+     index.html reads before the first paint) swaps the top section to the client version, moves the
+     For clients section up to sit right under it, renumbers the sections and opens the For clients tab
+     in How it works. The address keeps ?for=clients, so a copied link opens the same version. */
+  const audSwitch = document.querySelector('[data-aud-switch]');
+  if (audSwitch) {
+    const hero = document.querySelector('.hero');
+    const ribbon = document.querySelector('.ribbon');
+    const switchSection = document.getElementById('switch');
+    const clientsSection = document.getElementById('clients');
+    const proRule = document.querySelector('[data-pro-rule]') || switchSection; // the hairline under Switching, pro order only
+    const audButtons = Array.from(audSwitch.querySelectorAll('[data-aud-set]'));
+
+    const setAud = (aud, tapped) => {
+      const client = aud === 'client';
+      root.classList.toggle('aud-client', client);
+      audButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.audSet === aud)));
+      if (ribbon && switchSection && clientsSection) {
+        if (client) ribbon.after(clientsSection); else proRule.after(clientsSection);
+        // Between two hairlines in the pro order it is tight top and bottom; first in the client order, full
+        clientsSection.classList.toggle('section--tight-top', !client);
+        clientsSection.classList.toggle('section--tight-bottom', !client);
+        document.querySelectorAll('main .eyebrow__num').forEach((n, i) => { n.textContent = String(i + 1).padStart(2, '0'); });
+      }
+      const tab = document.getElementById(client ? 'tab-clients' : 'tab-pros');
+      if (tab && tab.getAttribute('aria-selected') !== 'true') tab.click();
+      if (!tapped) return;
+      if (hero) hero.classList.add('is-switched');
+      try {
+        const url = new URL(window.location.href);
+        if (client) url.searchParams.set('for', 'clients'); else url.searchParams.delete('for');
+        window.history.replaceState(window.history.state, '', url);
+      } catch (e) { /* the address just stays as it was */ }
+    };
+
+    audButtons.forEach((b) => b.addEventListener('click', () => {
+      if (b.getAttribute('aria-pressed') !== 'true') setAud(b.dataset.audSet, true);
+    }));
+    if (root.classList.contains('aud-client')) setAud('client', false);
+  }
 
   /* ---------- Scroll reveal + in-view Gold Reveal logos (not the docked header one) ---------- */
   const revealEls = document.querySelectorAll('.reveal, main .gr--inview');

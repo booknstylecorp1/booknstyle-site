@@ -134,7 +134,7 @@
           <p class="eyebrow wl-kicker intro" style="--d:1.1s" data-soon-only><span class="status__dot" aria-hidden="true"></span>Launching soon in New York</p>
           <p class="eyebrow wl-kicker intro" style="--d:1.1s" data-live-only hidden><span class="status__dot" aria-hidden="true"></span>BookNStyle is live. <a class="wl-live-link" href="../#download">Get the app</a></p>
           <h1 class="display wl-title intro" id="wl-title" style="--d:.25s">Get in <em>early.</em></h1>
-          <!-- Pros who open a client's "Ask them to join" link (?ref=CODE&role=pro): shown by waitlist.js. -->
+          <!-- Pros who open a client's "Message your pro" link (?ref=CODE&role=pro): shown by waitlist.js. -->
           <div class="wl-hook intro" style="--d:.35s" data-wl-pro-hook hidden>
             <span class="wl-hook__icon" aria-hidden="true"><svg><use href="#i-heart"/></svg></span>
             <p><strong>A client of yours sent you here.</strong> They want to book you on BookNStyle. Claim your booking link before launch, before someone else takes your name. Free to join, no commission on your bookings, and you're a Founding Pro.</p>
@@ -328,17 +328,18 @@
               </div>
             </section>
 
-            <!-- Clients: ask the pros they named to join -->
-            <section class="wl-panel wl-ask" data-wl-ask hidden aria-labelledby="wl-ask-title">
-              <p class="wl-panel__label" id="wl-ask-title">Ask them to join</p>
+            <!-- Clients: message the pros they named. A card per pro (waitlist.js):
+                 Message @handle copies the message and opens their profile. -->
+            <section class="wl-panel wl-ask" data-wl-ask hidden aria-labelledby="wl-ask-title" aria-describedby="wl-ask-note">
+              <p class="wl-panel__label" id="wl-ask-title" tabindex="-1">Let your pro know</p>
+              <p class="wl-fine" id="wl-ask-note">A message from you works best.</p>
               <ul class="wl-ask__list" role="list" data-wl-ask-list></ul>
-              <label class="wl-sr" for="wl-ask-msg">Message to send</label>
-              <textarea class="wl-ask__msg" id="wl-ask-msg" rows="5" readonly data-wl-ask-msg></textarea>
-              <div class="wl-ask__actions">
-                <button class="wl-share__btn wl-share__btn--gold" type="button" data-wl-ask-share hidden><svg aria-hidden="true"><use href="#i-share"/></svg>Share</button>
-                <button class="wl-share__btn" type="button" data-wl-ask-copy><svg aria-hidden="true"><use href="#i-copy"/></svg>Copy text</button>
+              <!-- Shown only if the browser can't copy: the message, selected, to copy by hand -->
+              <div class="wl-ask__manual" data-wl-ask-manual hidden>
+                <label class="wl-fine" for="wl-ask-msg">Copy this message, then paste it in a DM:</label>
+                <textarea class="wl-ask__msg" id="wl-ask-msg" rows="5" readonly data-wl-ask-msg></textarea>
               </div>
-              <p class="wl-fine">Send it as a DM. It has your link, so pros who join with it count toward your 3 friends.</p>
+              <p class="wl-fine">Each message has your link, so pros who join with it count toward your 3 friends.</p>
             </section>
 
             <!-- Clients who named nobody yet (this browser only) -->
