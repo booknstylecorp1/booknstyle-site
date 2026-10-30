@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Join the waitlist | BookNStyle</title>
+  <!-- Short address booknstyle.com/client: easy to type from a TikTok message, where links can't be tapped.
+       Forwards to the client waitlist and tags the sign-up utm_source=short_link, utm_campaign=client.
+       Any query it was opened with (a ?ref= code, other utm tags) is passed along. -->
+  <script>
+    (function () {
+      var q = new URLSearchParams(location.search);
+      if (!q.has('role')) q.set('role', 'client');
+      if (!q.has('utm_source')) { q.set('utm_source', 'short_link'); q.set('utm_campaign', 'client'); }
+      location.replace('/waitlist/?' + q.toString() + location.hash);
+    })();
+  </script>
+  <meta http-equiv="refresh" content="0; url=/waitlist/?role=client&amp;utm_source=short_link&amp;utm_campaign=client">
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://booknstyle.com/waitlist/">
+  <meta name="theme-color" content="#0A0B11">
+  <meta name="color-scheme" content="dark">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="BookNStyle">
+  <meta property="og:url" content="https://booknstyle.com/client/">
+  <meta property="og:title" content="Join the BookNStyle waitlist">
+  <meta property="og:description" content="Book barbers, stylists, nail and lash techs and more, all in one app. Join the waitlist and get launch news first.">
+  <meta property="og:image" content="https://booknstyle.com/assets/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="BookNStyle logo with the line: Book the beauty pros near you.">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Join the BookNStyle waitlist">
+  <meta name="twitter:description" content="Book beauty and personal care pros near you, all in one app. Join the waitlist and get launch news first.">
+  <meta name="twitter:image" content="https://booknstyle.com/assets/og.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..500;1,6..96,400..500&amp;family=Inter:wght@400;500;600&amp;display=swap">
+  <style>
+    /* Only seen for a moment (or with JavaScript off): the website's look, so even this matches. */
+    :root { --ink-0: #0A0B11; --text: #F5F4EE; --text-3: rgba(245, 244, 238, .56); --champ: #C8956A; --champ-l: #DFB990; --ink-text: #16182B;
+      --grad-gold: linear-gradient(135deg, #EACBA5 0%, #D7A97E 38%, #C8956A 62%, #B5825A 100%);
+      --grad-gold-text: linear-gradient(100deg, #F0D3AE 0%, #DFB990 35%, #C8956A 70%, #E7C59D 100%); }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; padding: 32px 16px; background: var(--ink-0); color: var(--text);
+      font: 16px/1.6 "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; text-align: center; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: -20% -40% auto; height: 80vh; pointer-events: none; background: radial-gradient(closest-side, rgba(200, 149, 106, .16), rgba(200, 149, 106, 0)); }
+    main { position: relative; display: flex; flex-direction: column; align-items: center; max-width: 420px; }
+    .mark { width: 50px; height: auto; filter: drop-shadow(0 5px 10px rgba(0, 0, 0, .5)); }
+    .word { margin-top: 12px; font-size: 12px; font-weight: 600; letter-spacing: .42em; margin-right: -.42em; }
+    .rule { width: 72px; height: 1px; margin-top: 12px; background: linear-gradient(90deg, rgba(200,149,106,0), var(--champ), rgba(200,149,106,0)); }
+    h1 { margin: 34px 0 0; font: 400 38px/1.08 "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif; letter-spacing: -.02em; text-wrap: balance; }
+    h1 em { font-style: italic; background: var(--grad-gold-text); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: .06em; }
+    p { margin: 12px 0 0; color: var(--text-3); font-size: 15px; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; margin-top: 26px; min-height: 56px; padding: 0 30px; border-radius: 999px; text-decoration: none;
+      background: var(--grad-gold); color: var(--ink-text); font-weight: 600; box-shadow: 0 10px 30px -12px rgba(200, 149, 106, .65), inset 0 1px 0 rgba(255, 255, 255, .35); }
+    .btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  </style>
+</head>
+<body>
+  <main>
+    <img class="mark" src="/assets/mark.webp" width="504" height="459" alt="">
+    <span class="word">BOOKNSTYLE</span>
+    <span class="rule"></span>
+    <h1>Your pros, <em>one tap away</em></h1>
+    <p>Taking you to the waitlist.</p>
+    <a class="btn" href="/waitlist/?role=client&amp;utm_source=short_link&amp;utm_campaign=client">Continue
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </main>
+</body>
+</html>
