@@ -33,11 +33,11 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..500;1,6..96,400..500&amp;family=Inter:wght@400;500;600&amp;display=swap">
   <link rel="preload" as="image" href="../assets/mark.webp" type="image/webp">
   <link rel="stylesheet" href="../styles.css">
-  <link rel="stylesheet" href="waitlist.css">
+  <link rel="stylesheet" href="waitlist.css?v=20261030">
   <script>document.documentElement.classList.add('js');</script>
   <!-- main.js: header, mobile menu, scroll reveal and the STORE_LINKS switch, same as the home page. -->
   <script src="../main.js" defer></script>
-  <script src="waitlist.js" defer></script>
+  <script src="waitlist.js?v=20261030" defer></script>
 </head>
 <body>
   <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
@@ -147,7 +147,28 @@
 
         <!-- ===== The card ===== -->
         <div class="wl-card intro" style="--d:.5s" data-wl-card>
-          <!-- ===== Form ===== -->
+          <!-- ===== Steps: a slim 3-step bar (waitlist.js sets the labels per role and the progress).
+               Clients and both: Join, Your pro, Friends. Pros: Join, Booking link, Share.
+               Hidden on the form: it first shows after Join, with Join already filled.
+               The top line counts the steps passed ("1 of 3 done"). Segments only fill:
+               champagne for a step done, grey for a step skipped. Never on a return visit. ===== -->
+          <div class="wl-steps" data-wl-steps hidden>
+            <p class="wl-steps__count" data-wl-steps-count>1 of 3 done</p>
+            <div class="wl-steps__track" role="progressbar" aria-label="Your progress" aria-valuemin="0" aria-valuemax="3" aria-valuenow="1" aria-valuetext="1 of 3 done." data-wl-steps-bar>
+              <span class="wl-steps__seg" data-wl-seg><span class="wl-steps__fill"></span></span>
+              <span class="wl-steps__seg" data-wl-seg><span class="wl-steps__fill"></span></span>
+              <span class="wl-steps__seg" data-wl-seg><span class="wl-steps__fill"></span></span>
+            </div>
+            <ol class="wl-steps__labels" role="list" aria-hidden="true">
+              <li data-wl-step-label><svg aria-hidden="true"><use href="#i-check"/></svg><span>Join</span></li>
+              <li data-wl-step-label><svg aria-hidden="true"><use href="#i-check"/></svg><span>Your pro</span></li>
+              <li data-wl-step-label><svg aria-hidden="true"><use href="#i-check"/></svg><span>Friends</span></li>
+            </ol>
+            <!-- After Done: the finish line (waitlist.js writes it per role). No confetti, no sound. -->
+            <p class="wl-allset" tabindex="-1" data-wl-allset hidden></p>
+          </div>
+
+          <!-- ===== Step 1: Join (form) ===== -->
           <noscript><p class="wl-form-error"><span>Please turn on JavaScript to join the waitlist, or email <a href="mailto:support@booknstyle.com">support@booknstyle.com</a> and we'll add you.</span></p></noscript>
           <form class="wl-form" id="wl-form" method="post" novalidate data-wl-form>
             <div class="wl-card__head">
@@ -221,14 +242,6 @@
               </div>
             </div>
 
-            <!-- Clients (and "both"): who's your pro? up to 3 Instagram or TikTok handles -->
-            <fieldset class="wl-field wl-group wl-nominate" data-wl-client hidden aria-describedby="wl-nominations-note wl-nominations-err">
-              <legend>Who's your pro? <span class="wl-optional">(optional)</span></legend>
-              <p class="wl-fine wl-nominate__note" id="wl-nominations-note">Add up to 3 pros you'd love to book here. We'll invite them, and we won't share your name.</p>
-              <div class="wl-noms" data-wl-noms></div>
-              <button class="wl-addbtn" type="button" data-wl-add-nom><svg aria-hidden="true"><use href="#i-plus"/></svg>Add another pro</button>
-              <p class="wl-error" id="wl-nominations-err" hidden></p>
-            </fieldset>
 
             <div class="wl-row">
               <div class="wl-field">
@@ -236,7 +249,8 @@
                 <input id="wl-zip" name="zip_or_area" type="text" autocomplete="postal-code" maxlength="60" aria-describedby="wl-zip-err">
                 <p class="wl-error" id="wl-zip-err" hidden></p>
               </div>
-              <div class="wl-field">
+              <!-- Pros and both only: the daily summary of named pros checks it (migration 056). -->
+              <div class="wl-field" data-wl-social hidden>
                 <label for="wl-social">Instagram or TikTok <span class="wl-optional">(optional)</span></label>
                 <div class="wl-prefix">
                   <span aria-hidden="true">@</span>
@@ -286,14 +300,21 @@
 
           <!-- ===== Success (also the returning view, from this browser's saved key) ===== -->
           <div class="wl-success" data-wl-success hidden>
-            <div class="wl-seal" aria-hidden="true"><svg><use href="#i-check"/></svg></div>
-            <p class="eyebrow wl-success__eyebrow" data-wl-eyebrow>You're on the list</p>
-            <h2 class="wl-done" tabindex="-1" data-wl-done>You're <em>in.</em></h2>
-            <p class="wl-success__lead" data-wl-lead>Check your inbox for a welcome email.</p>
-            <p class="wl-city" data-wl-city hidden><svg aria-hidden="true"><use href="#i-pin"/></svg><span>We start in New York, you'll hear when we reach <span data-wl-city-name>your city</span>.</span></p>
+            <!-- Each piece has a data-wl-slot. waitlist.js shows only the current step's
+                 pieces (see STEP_SLOTS); the done state, and every return visit, shows
+                 them all, as before the steps. -->
+            <div class="wl-seal" aria-hidden="true" data-wl-slot="head"><svg><use href="#i-check"/></svg></div>
+            <p class="eyebrow wl-success__eyebrow" data-wl-eyebrow data-wl-slot="head">You're on the list</p>
+            <h2 class="wl-done" tabindex="-1" data-wl-done data-wl-slot="head">You're <em>in.</em></h2>
+            <p class="wl-success__lead" data-wl-lead data-wl-slot="head">Check your inbox for a welcome email.</p>
+            <p class="wl-city" data-wl-city data-wl-slot="head" hidden><svg aria-hidden="true"><use href="#i-pin"/></svg><span>We start in New York, you'll hear when we reach <span data-wl-city-name>your city</span>.</span></p>
+
+            <!-- Steps 2 and 3: "Step 2 of 3, Your pro" (waitlist.js), then step 3's heading -->
+            <p class="wl-step-kicker" data-wl-step-kicker data-wl-slot="kicker" hidden></p>
+            <h3 class="wl-step-title" tabindex="-1" data-wl-step-title data-wl-slot="step3" hidden></h3>
 
             <!-- Pros: the booking link they claimed (or a box to claim one) -->
-            <section class="wl-panel wl-claimed" data-wl-claimed hidden aria-labelledby="wl-claimed-title">
+            <section class="wl-panel wl-claimed" data-wl-claimed data-wl-slot="claimed" hidden aria-labelledby="wl-claimed-title">
               <p class="wl-panel__label" id="wl-claimed-title" data-wl-claimed-title>Your booking link</p>
               <div data-wl-claimed-view>
                 <p class="wl-claimed__url"><span>app.booknstyle.com/book/</span><strong data-wl-claimed-handle></strong></p>
@@ -319,7 +340,7 @@
             </section>
 
             <!-- Pros: Founding Pro, earned by joining from the waitlist -->
-            <section class="wl-panel wl-award wl-award--earned" data-wl-pro-badge hidden aria-labelledby="wl-fp-title">
+            <section class="wl-panel wl-award wl-award--earned" data-wl-pro-badge data-wl-slot="probadge" hidden aria-labelledby="wl-fp-title">
               <span class="wl-medal" aria-hidden="true"><img src="../assets/mark.webp" width="504" height="459" alt=""><span class="wl-medal__check"><svg><use href="#i-check"/></svg></span></span>
               <div class="wl-award__body">
                 <p class="wl-award__name" id="wl-fp-title">Founding Pro</p>
@@ -330,7 +351,7 @@
 
             <!-- Clients: message the pros they named. A card per pro (waitlist.js):
                  Message @handle copies the message and opens their profile. -->
-            <section class="wl-panel wl-ask" data-wl-ask hidden aria-labelledby="wl-ask-title" aria-describedby="wl-ask-note">
+            <section class="wl-panel wl-ask" data-wl-ask data-wl-slot="pros" hidden aria-labelledby="wl-ask-title" aria-describedby="wl-ask-note">
               <p class="wl-panel__label" id="wl-ask-title" tabindex="-1">Let your pro know</p>
               <p class="wl-fine" id="wl-ask-note">A message from you works best.</p>
               <ul class="wl-ask__list" role="list" data-wl-ask-list></ul>
@@ -343,7 +364,7 @@
             </section>
 
             <!-- Clients who named nobody yet (this browser only) -->
-            <section class="wl-panel wl-nominate wl-nominate--late" data-wl-nominate-late hidden aria-labelledby="wl-late-title">
+            <section class="wl-panel wl-nominate wl-nominate--late" data-wl-nominate-late data-wl-slot="pros" hidden aria-labelledby="wl-late-title">
               <p class="wl-panel__label" id="wl-late-title">Who's your pro?</p>
               <form class="wl-inline" data-wl-nom-form novalidate>
                 <p class="wl-fine">Add up to 3 pros you'd love to book here. We'll invite them, and we won't share your name.</p>
@@ -357,7 +378,7 @@
             </section>
 
             <!-- Clients: Founding Member, earned by joining from the waitlist -->
-            <section class="wl-panel wl-award wl-award--earned" data-wl-member-badge hidden aria-labelledby="wl-fm-title">
+            <section class="wl-panel wl-award wl-award--earned" data-wl-member-badge data-wl-slot="member" hidden aria-labelledby="wl-fm-title">
               <span class="wl-medal" aria-hidden="true"><img src="../assets/mark.webp" width="504" height="459" alt=""><span class="wl-medal__check"><svg><use href="#i-check"/></svg></span></span>
               <div class="wl-award__body">
                 <p class="wl-award__name" id="wl-fm-title">Founding Member</p>
@@ -367,7 +388,7 @@
             </section>
 
             <!-- Clients: 3 friends join with your link, your first booking fee is on us. Never a place in line. -->
-            <section class="wl-panel wl-award wl-reward" data-wl-reward hidden aria-labelledby="wl-reward-title">
+            <section class="wl-panel wl-award wl-reward" data-wl-reward data-wl-slot="reward" hidden aria-labelledby="wl-reward-title">
               <span class="wl-medal wl-medal--gift wl-medal--locked" aria-hidden="true" data-wl-reward-medal><svg><use href="#i-gift"/></svg><span class="wl-medal__check"><svg><use href="#i-check"/></svg></span></span>
               <div class="wl-award__body">
                 <p class="wl-award__name" id="wl-reward-title">Your first booking fee, on us</p>
@@ -380,7 +401,7 @@
               </div>
             </section>
 
-            <div class="wl-sharebox">
+            <div class="wl-sharebox" data-wl-slot="share">
               <label class="wl-panel__label" for="wl-link">Your link</label>
               <div class="wl-link">
                 <textarea id="wl-link" readonly rows="1" spellcheck="false" data-wl-link></textarea>
@@ -398,7 +419,7 @@
             </div>
 
             <!-- One-tap story image, drawn in the browser (no server) -->
-            <section class="wl-panel wl-story" aria-labelledby="wl-story-title">
+            <section class="wl-panel wl-story" aria-labelledby="wl-story-title" data-wl-slot="share">
               <img class="wl-story__thumb" alt="Your story image: I'm in. BookNStyle is launching soon, with your link." width="108" height="192" data-wl-story-thumb hidden>
               <div class="wl-story__body">
                 <p class="wl-panel__label" id="wl-story-title">Post it to your story</p>
@@ -407,8 +428,15 @@
               </div>
             </section>
 
-            <p class="wl-fine wl-success__fine">Instagram and TikTok don't take links from websites, so the Instagram, TikTok and Snapchat buttons share your story image and copy your link: paste it with the Link sticker on Instagram, the Link tool on Snapchat, or in your TikTok caption.</p>
-            <button class="wl-textbtn wl-reset" type="button" data-wl-reset hidden>Not you? Join with another email</button>
+            <p class="wl-fine wl-success__fine" data-wl-slot="share">Instagram and TikTok don't take links from websites, so the Instagram, TikTok and Snapchat buttons share your story image and copy your link: paste it with the Link sticker on Instagram, the Link tool on Snapchat, or in your TikTok caption.</p>
+            <!-- Step buttons: Back (step 3), a quiet Skip (a quiet Done on step 3), and a gold Next or Done once there's something to keep -->
+            <p class="wl-status wl-step-status" role="status" aria-live="polite" data-wl-step-status data-wl-slot="nav"></p>
+            <div class="wl-stepnav" data-wl-stepnav data-wl-slot="nav" hidden>
+              <button class="wl-textbtn wl-stepnav__back" type="button" data-wl-back hidden>Back</button>
+              <button class="wl-textbtn wl-stepnav__skip" type="button" data-wl-skip>Skip</button>
+              <button class="btn btn--gold btn--sm wl-stepnav__next" type="button" data-wl-next hidden><span data-wl-next-label>Next</span><svg class="btn__arrow" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+            </div>
+            <button class="wl-textbtn wl-reset" type="button" data-wl-reset data-wl-slot="reset" hidden>Not you? Join with another email</button>
           </div>
         </div>
 

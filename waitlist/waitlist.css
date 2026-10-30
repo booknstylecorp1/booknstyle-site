@@ -86,6 +86,46 @@
 .wl-req { color: var(--champ-l); }
 .wl-optional { color: var(--text-3); font-weight: 400; }
 
+/* ---------- Steps: a slim 3-step bar at the top of the card ----------
+   Champagne fill for each step finished (data-state="done"); a soft ring on
+   the step on screen (data-here). waitlist.js sets both. */
+.wl-steps { display: grid; gap: 10px; margin-bottom: 24px; }
+.wl-steps__count { font-size: .72rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--champ-l); }
+.wl-steps__track { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.wl-steps__seg { position: relative; height: 6px; border-radius: 999px; background: rgba(245, 244, 238, .1); overflow: hidden; transition: background-color .4s, box-shadow .4s; }
+.wl-steps__seg[data-here] { background: rgba(223, 185, 144, .2); box-shadow: 0 0 0 1px rgba(223, 185, 144, .45); }
+.wl-steps__fill { position: absolute; inset: 0; border-radius: inherit; background: var(--grad-gold); transform: scaleX(0); transform-origin: left; transition: transform .8s var(--ease-out); }
+.wl-steps__seg[data-state="done"] .wl-steps__fill { transform: scaleX(1); }
+/* Skipped: a quiet grey fill, no check. Still passed, so the bar keeps moving forward. */
+.wl-steps__seg[data-state="skipped"] { background: rgba(245, 244, 238, .3); }
+.wl-steps__labels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: .78rem; line-height: 1.3; color: var(--text-3); }
+.wl-steps__labels li { display: flex; align-items: center; gap: 6px; min-width: 0; transition: color .4s; }
+.wl-steps__labels svg { display: none; width: 12px; height: 12px; flex: none; fill: none; stroke: var(--champ-l); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.wl-steps__labels li[data-state="done"] { color: var(--champ-l); }
+.wl-steps__labels li[data-state="done"] svg { display: block; }
+.wl-steps__labels li[data-here] { color: var(--cream); font-weight: 600; }
+.wl-allset { font-size: .95rem; line-height: 1.5; color: var(--cream); }
+.wl-allset:focus { outline: none; }
+@media (prefers-reduced-motion: no-preference) { .wl-allset:not([hidden]) { animation: intro-rise .6s var(--ease-out) both; } }
+@media (prefers-reduced-motion: reduce) { .wl-steps__fill, .wl-steps__seg, .wl-steps__labels li { transition: none; } }
+/* "Step 2 of 3, Your pro", above each step's own pieces */
+.wl-step-kicker { justify-self: center; margin-top: 6px; font-size: .72rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--champ-l); }
+
+/* Steps 2 and 3 show only their own pieces of the success view */
+.wl-success [data-wl-off] { display: none !important; }
+.wl-step-title { font-family: var(--serif); font-weight: 400; font-size: clamp(1.9rem, 1.5rem + 1.4vw, 2.5rem); line-height: 1.1; letter-spacing: -.01em; }
+.wl-step-title:focus { outline: none; }
+.wl-step-title[hidden], .wl-stepnav[hidden] { display: none; }
+.wl-stepnav { display: flex; align-items: center; gap: 16px; margin-top: 4px; }
+.wl-stepnav [hidden] { display: none; }
+.wl-stepnav__skip, .wl-stepnav__next { margin-left: auto; }
+.wl-stepnav__skip { color: var(--text-2); text-decoration-color: rgba(245, 244, 238, .25); padding: 10px 2px; }
+.wl-stepnav__back { padding: 10px 2px; }
+.wl-step-status:empty { position: absolute; margin: 0; }
+@media (max-width: 479px) {
+  .wl-stepnav__next { flex: 1; justify-content: center; }
+}
+
 /* ---------- Fields ---------- */
 .wl-form { display: grid; gap: 20px; }
 .wl-field { display: grid; gap: 8px; border: 0; margin: 0; padding: 0; min-width: 0; }
@@ -94,6 +134,8 @@ fieldset.wl-field > legend { float: left; width: 100%; margin-bottom: 8px; }
 fieldset.wl-field > legend + * { clear: both; }
 .wl-row { display: grid; gap: 20px; }
 @media (min-width: 560px) { .wl-row { grid-template-columns: 1fr 1fr; gap: 14px; } }
+/* Clients: no Instagram or TikTok field beside ZIP, so ZIP takes the row */
+@media (min-width: 560px) { .wl-row:has(> [hidden]) { grid-template-columns: 1fr; } }
 
 .wl-form input[type="text"], .wl-form input[type="email"], .wl-form select, .wl-success input[type="text"] {
   width: 100%; min-height: 52px; padding: 0 16px; border-radius: 14px;

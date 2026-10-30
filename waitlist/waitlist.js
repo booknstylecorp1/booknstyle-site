@@ -4,6 +4,11 @@
    "3 friends, first booking fee on us" progress, the pro's claimed booking
    link or the client's "Message @handle" cards, and a story image drawn
    right here. Never shows a place in line (owner, Oct 26 2026).
+   In steps: 1 Join (the form, with no bar), 2 Your pro (clients: name
+   pros, then Message @handle) or Booking link (pros), 3 Friends (the
+   reward and sharing) or Share (pros), then the whole view. A 3-step bar
+   at the top of the card shows from step 2 on, with Join already filled.
+   Every later step can be skipped (it fills grey); the bar never goes back.
    Server side: supabase/functions/waitlist-join and waitlist-info,
    migrations 052 and 053. */
 
@@ -101,6 +106,34 @@
   const params = new URLSearchParams(location.search);
   // Form controls by name. (Not el('name'): that is the form's own name attribute.)
   const el = (n) => form.elements.namedItem(n);
+
+  // ---------- Steps ----------
+  // Step 1 is the form, with the bar hidden. Steps 2 and 3 show parts of
+  // the success view (each piece has a data-wl-slot); 'done' shows all of
+  // it, as before the steps.
+  // seg: each step's result, '' (not yet), 'done' (champagne, with a check:
+  // joined, pros saved or a link held, a copy or share on step 3) or
+  // 'skipped' (grey, no check: left with nothing kept). Segments only fill
+  // (Back moves the highlight, never the fill); a grey one can still turn
+  // champagne. Reset only when "Not you?" starts a new sign-up.
+  // showBar: only for a new sign-up in this visit. A return visit sees the
+  // whole view with no bar (the page doesn't remember what was shared, so
+  // it can't say step 3 was done).
+  const STEP_LABELS = { client: ['Join', 'Your pro', 'Friends'], pro: ['Join', 'Booking link', 'Share'] };
+  const STEP_TITLE = { client: 'Invite your friends', pro: 'Share your link' };
+  const STEP_SLOTS = {
+    client: { 2: ['head', 'kicker', 'pros', 'nav'], 3: ['kicker', 'step3', 'reward', 'share', 'nav'] },
+    both: { 2: ['head', 'kicker', 'pros', 'nav'], 3: ['kicker', 'step3', 'reward', 'share', 'nav'] },
+    pro: { 2: ['head', 'kicker', 'claimed', 'probadge', 'nav'], 3: ['kicker', 'step3', 'share', 'nav'] },
+  };
+  let step = 1; // 1, 2, 3 or 'done'
+  let seg = ['', '', ''];
+  let showBar = false;
+  let acted3 = false; // copied or shared on step 3: the quiet Done turns gold
+  const flow = (role) => (role === 'pro' ? 'pro' : role === 'both' ? 'both' : 'client');
+  const labelsFor = (role) => STEP_LABELS[role === 'pro' ? 'pro' : 'client'];
+  const stepsBar = $('[data-wl-steps-bar]');
+  const passed = () => seg.filter(Boolean).length;
 
   // ---------- Talking to the server (a local mock with ?mock on localhost) ----------
   const MOCK = IS_LOCAL && params.has('mock');
@@ -336,19 +369,23 @@
     if (msg) { msg.textContent = ''; msg.hidden = true; }
     $$('input', list).forEach((i) => i.removeAttribute('aria-invalid'));
   }
-  const noms = nomList($('[data-wl-noms]'), $('[data-wl-add-nom]'), 'wl-nominations-err');
+  // (The first form no longer asks "Who's your pro?": that is step 2, saved
+  // with the late panel's update call below.)
 
-  // ---------- Role: pro extras for pros, "who's your pro" for clients ----------
+  // ---------- Role: pro extras for pros ----------
   const proWrap = $('[data-wl-pro]');
-  const clientWrap = $('[data-wl-client]');
+  // Their own Instagram or TikTok: pros and both only. The daily summary of
+  // named pros checks it (migration 056); nothing reads a client's.
+  const socialField = $('[data-wl-social]');
   const roleInputs = $$('input[name="role"]', form);
   const currentRole = () => (roleInputs.find((r) => r.checked) || {}).value;
   const syncRole = () => {
     const role = currentRole();
     const isPro = role === 'pro' || role === 'both';
     proWrap.hidden = !isPro;
-    clientWrap.hidden = !(role === 'client' || role === 'both');
-    if (!isPro) el('specialty').value = '';
+    socialField.hidden = !isPro;
+    if (step === 1) paintSteps(role);
+    if (!isPro) { el('specialty').value = ''; el('social_handle').value = ''; clearError('social_handle'); }
     else if (!handleInput.value && !handleInput.dataset.touched) {
       const s = slugify(el('name').value);
       if (s.length >= 3) suggest(s);
@@ -385,14 +422,13 @@
     zip_or_area: () => el('zip_or_area'),
     social_handle: () => el('social_handle'),
     reserved_handle: () => handleInput,
-    nominations: () => $('input', $('[data-wl-noms]')),
     city: () => el('city'),
     consent: () => el('consent'),
   };
   const ERROR_ID = {
     name: 'wl-name-err', email: 'wl-email-err', role: 'wl-role-err', specialty: 'wl-specialty-err',
     zip_or_area: 'wl-zip-err', social_handle: 'wl-social-err', reserved_handle: 'wl-handle-err',
-    nominations: 'wl-nominations-err', city: 'wl-city-err', consent: 'wl-consent-err',
+    city: 'wl-city-err', consent: 'wl-consent-err',
   };
   const formError = $('[data-wl-form-error]');
 
@@ -414,8 +450,6 @@
     if (field === 'role') {
       $('.wl-choices', form).removeAttribute('data-invalid');
       roleInputs.forEach((r) => r.removeAttribute('aria-invalid'));
-    } else if (field === 'nominations') {
-      clearNomError($('[data-wl-noms]'), ERROR_ID.nominations);
     } else {
       const input = FIELD_INPUT[field] && FIELD_INPUT[field]();
       if (input) input.removeAttribute('aria-invalid');
@@ -452,11 +486,7 @@
         errors.push(['reserved_handle', st.message || 'Please pick another link.']);
       }
     }
-    if (role === 'client' || role === 'both') {
-      const n = noms.read();
-      if (n.bad) errors.push(['nominations', `Check ${n.bad}. Handles use letters, numbers, dots and underscores only.`]);
-    }
-    const handle = el('social_handle').value.trim().replace(/^@+/, '');
+    const handle = (role === 'pro' || role === 'both') ? el('social_handle').value.trim().replace(/^@+/, '') : '';
     if (handle && !/^[A-Za-z0-9._]{1,30}$/.test(handle) && !/(instagram|tiktok)\.com\//i.test(handle)) {
       errors.push(['social_handle', 'Letters, numbers, dots and underscores only.']);
     }
@@ -492,7 +522,6 @@
     }
 
     const isPro = role === 'pro' || role === 'both';
-    const isClient = role === 'client' || role === 'both';
     const payload = {
       action: 'join',
       name: el('name').value.trim(),
@@ -500,11 +529,13 @@
       role,
       specialty: isPro ? (el('specialty').value || null) : null,
       reserved_handle: isPro ? linkToSend() : null,
-      nominations: isClient ? noms.read().list : [],
+      // Named in step 2 now (an 'update' with this sign-up's key), so the
+      // join itself always sends none, as it did when that box was left empty.
+      nominations: [],
       zip_or_area: el('zip_or_area').value.trim() || null,
       outside_ny: el('outside_ny').checked === true,
       city: el('outside_ny').checked ? (el('city').value.trim() || null) : null,
-      social_handle: el('social_handle').value.trim() || null,
+      social_handle: isPro ? (el('social_handle').value.trim() || null) : null,
       consent: el('consent').checked === true,
       ref: refField.value || null,
       utm,
@@ -551,11 +582,16 @@
 
   // ---------- Success ----------
   const status = $('[data-wl-status]');
+  // Step 2 hides the share box (and its status line): it has its own.
+  const stepStatus = $('[data-wl-step-status]');
   let statusTimer = 0;
   const say = (msg) => {
-    status.textContent = msg;
+    const target = $('.wl-sharebox').hasAttribute('data-wl-off') ? stepStatus : status;
+    status.textContent = '';
+    stepStatus.textContent = '';
+    target.textContent = msg;
     clearTimeout(statusTimer);
-    statusTimer = setTimeout(() => { status.textContent = ''; }, 6000);
+    statusTimer = setTimeout(() => { status.textContent = ''; stepStatus.textContent = ''; }, 6000);
   };
 
   async function copy(text, fallbackInput) {
@@ -578,7 +614,11 @@
   }
 
   let current = null; // the answer on screen, plus what the page knows locally
-  const isOwner = () => !!(current && current.owner && store.get(KEYS.key));
+  // The manage key, also kept in memory for this visit: with storage blocked
+  // a new sign-up can still name pros or claim a link in step 2.
+  let memKey = null;
+  const myKey = () => store.get(KEYS.key) || memKey;
+  const isOwner = () => !!(current && current.owner && myKey());
 
   function showSuccess(data, local = {}) {
     const role = data.role || local.role || 'client';
@@ -592,7 +632,7 @@
       store.set(KEYS.mine, code);
       store.del(KEYS.ref);
     }
-    if (data.manage_token) store.set(KEYS.key, data.manage_token);
+    if (data.manage_token) { store.set(KEYS.key, data.manage_token); memKey = data.manage_token; }
     if (data.owner && store.get(KEYS.key)) {
       // Kept so a return visit shows this at once. No email, no key.
       const { manage_token: _drop, ...keep } = current;
@@ -601,6 +641,18 @@
 
     // Headline and lead
     const returning = !!data.already_joined;
+    // Steps: a new sign-up from the form goes on to step 2 (step 1 done).
+    // Anyone else (a return visit, an email already on the list) sees the
+    // whole view, as before. An update keeps the step it was on.
+    const wasHidden = success.hidden;
+    if (wasHidden) {
+      const fresh = local.fromForm && !returning && isOwner();
+      step = fresh ? 2 : 'done';
+      seg = fresh ? ['done', '', ''] : ['', '', ''];
+      showBar = fresh;
+      acted3 = false;
+      skipSaveTried = false;
+    }
     $('[data-wl-eyebrow]').textContent = returning ? 'Welcome back' : "You're on the list";
     let lead = local.fromStorage
       ? "Here's your link and your progress."
@@ -652,19 +704,139 @@
     prepareStory();
     $('[data-wl-reset]').hidden = !local.fromStorage;
 
-    const wasHidden = success.hidden;
     form.hidden = true;
     success.hidden = false;
+    applyStep();
     if (wasHidden && !local.fromStorage) {
-      const card = $('[data-wl-card]');
-      const top = card.getBoundingClientRect().top;
-      // Phones and tablets: bring the result to the top. Desktop: only if it's off screen.
-      if (top < 0 || (window.innerWidth < 960 && top > 100) || top > window.innerHeight * 0.6) {
-        card.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-      }
+      bringCardIntoView();
       $('[data-wl-done]').focus({ preventScroll: true });
     }
   }
+
+  function bringCardIntoView() {
+    const card = $('[data-wl-card]');
+    const top = card.getBoundingClientRect().top;
+    // Phones and tablets: bring the result to the top. Desktop: only if it's off screen.
+    if (top < 0 || (window.innerWidth < 960 && top > 100) || top > window.innerHeight * 0.6) {
+      card.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    }
+  }
+
+  // ---------- Steps (the state is declared near the top) ----------
+  function paintSteps(role) {
+    const labels = labelsFor(role);
+    const here = step === 'done' ? 0 : step;
+    $$('[data-wl-step-label]').forEach((li, i) => {
+      $('span', li).textContent = labels[i];
+      li.dataset.state = seg[i];
+      li.toggleAttribute('data-here', i + 1 === here);
+    });
+    $$('[data-wl-seg]').forEach((node, i) => {
+      node.dataset.state = seg[i];
+      node.toggleAttribute('data-here', i + 1 === here);
+    });
+    // The top line counts the steps passed; the step's own heading says
+    // which step this is ("Step 2 of 3, Your pro").
+    const n = passed();
+    const count = n === 3 ? 'All done' : `${n} of 3 done`;
+    $('[data-wl-steps-count]').textContent = count;
+    stepsBar.setAttribute('aria-valuenow', String(n));
+    const skipped = labels.filter((_, i) => seg[i] === 'skipped');
+    const note = skipped.length ? ` ${skipped.join(' and ')} skipped.` : '';
+    stepsBar.setAttribute('aria-valuetext', step === 'done' || step === 1
+      ? `${count}.${note}`
+      : `Step ${step} of 3, ${labels[step - 1]}. ${count}.${note}`);
+  }
+  // After Done: one line under the bar. "Your link is held" only when it is.
+  function allSetText() {
+    const held = !!(current && (current.role === 'pro' || current.role === 'both') && current.reserved_handle && !current.handle_applied);
+    if (isLive()) return held ? 'All set. Your link is held.' : 'All set.';
+    if (held) return "All set. Your link is held. We'll email you the day BookNStyle is out.";
+    return current && current.role === 'pro'
+      ? "All set. We'll email you the day BookNStyle is out."
+      : "All set. We'll email you the moment BookNStyle is out.";
+  }
+  // Something to keep on this step: Next instead of Skip.
+  const stepHasResult = () => {
+    if (step === 3) return acted3;
+    if (!current) return false;
+    if (flow(current.role) === 'pro') return !!current.reserved_handle;
+    return !$('[data-wl-ask]').hidden;
+  };
+  function applyStep() {
+    const role = current ? current.role : currentRole();
+    // Something kept fills the step at once: a pro who claimed a link on
+    // step 1 lands on "2 of 3 done", a copy or share fills step 3.
+    if (step === 2 && stepHasResult()) seg[1] = 'done';
+    if (step === 3 && acted3) seg[2] = 'done';
+    $('[data-wl-steps]').hidden = !showBar;
+    paintSteps(role);
+    const allSet = $('[data-wl-allset]');
+    allSet.hidden = !(showBar && step === 'done');
+    allSet.textContent = allSet.hidden ? '' : allSetText();
+    const kicker = $('[data-wl-step-kicker]');
+    kicker.hidden = step !== 2 && step !== 3;
+    kicker.textContent = kicker.hidden ? '' : `Step ${step} of 3, ${labelsFor(role)[step - 1]}`;
+    const show = step === 2 || step === 3 ? STEP_SLOTS[flow(role)][step] : null;
+    $$('[data-wl-slot]', success).forEach((n) => n.toggleAttribute('data-wl-off', !!show && !show.includes(n.dataset.wlSlot)));
+    const title = $('[data-wl-step-title]');
+    title.hidden = step !== 3;
+    title.textContent = STEP_TITLE[role === 'pro' ? 'pro' : 'client'];
+    const nav = $('[data-wl-stepnav]');
+    nav.hidden = !show;
+    $('[data-wl-step-status]').hidden = !show;
+    if (!show) return;
+    const result = stepHasResult();
+    $('[data-wl-back]').hidden = step !== 3;
+    $('[data-wl-skip]').hidden = result;
+    $('[data-wl-skip]').textContent = step === 3 ? 'Done' : 'Skip';
+    $('[data-wl-next]').hidden = !result;
+    $('[data-wl-next-label]').textContent = step === 3 ? 'Done' : 'Next';
+  }
+  function goStep(to) {
+    // Moving on with nothing kept: grey, but passed. (Back fills nothing.)
+    if (to === 3 && !seg[1]) seg[1] = 'skipped';
+    if (to === 'done' && !seg[2]) seg[2] = 'skipped';
+    step = to;
+    // A message from the last step doesn't belong on this one.
+    $$('[data-wl-status], [data-wl-step-status]').forEach((n) => { n.textContent = ''; });
+    applyStep();
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      Array.from(success.children)
+        .filter((n) => !n.hidden && !n.hasAttribute('data-wl-off') && n.animate)
+        .forEach((n, i) => n.animate(
+          [{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }],
+          { duration: 520, delay: Math.min(i, 5) * 60, easing: 'cubic-bezier(.16, 1, .3, 1)', fill: 'backwards' },
+        ));
+    }
+    bringCardIntoView();
+    // Focus the step's heading: "You're in." on step 2, the step title on
+    // step 3, the "All set" line on the whole view.
+    (step === 3 ? $('[data-wl-step-title]') : step === 'done' && showBar ? $('[data-wl-allset]') : $('[data-wl-done]')).focus({ preventScroll: true });
+  }
+  let skipSaveTried = false;
+  $('[data-wl-noms-late]').addEventListener('input', () => { skipSaveTried = false; });
+  $('[data-wl-skip]').addEventListener('click', async () => {
+    // Pros typed into "Who's your pro?" but not saved yet: Skip saves them
+    // instead (the one-page form always sent what was typed) and stays on
+    // this step, so the Message @handle cards show up next to Next. Only
+    // once: if that save fails (a bad handle, no connection), the next Skip
+    // moves on.
+    if (step === 2 && !skipSaveTried && !$('[data-wl-nominate-late]').hidden && lateNomsTyped()) {
+      skipSaveTried = true;
+      await saveLateNoms();
+      return;
+    }
+    goStep(step === 2 ? 3 : 'done');
+  });
+  $('[data-wl-next]').addEventListener('click', () => goStep(step === 2 ? 3 : 'done'));
+  $('[data-wl-back]').addEventListener('click', () => goStep(2));
+  // A copy or share on step 3 counts as done (and fills it champagne).
+  success.addEventListener('click', (e) => {
+    if (step !== 3 || acted3) return;
+    const hit = e.target.closest('button, a');
+    if (hit && hit.closest('[data-wl-slot="share"]')) { acted3 = true; applyStep(); }
+  });
 
   // ----- Pro: the claimed link -----
   // Same promise as the welcome email and the Privacy Policy (migration 053).
@@ -727,7 +899,7 @@
     const btn = $('[data-wl-link-save]');
     btn.disabled = true;
     try {
-      const { ok, status: code, data } = await post({ action: 'update', manage_token: store.get(KEYS.key), set_handle: true, reserved_handle: st.value });
+      const { ok, status: code, data } = await post({ action: 'update', manage_token: myKey(), set_handle: true, reserved_handle: st.value });
       if (ok && data && data.referral_code) {
         // Answers about the old and new names are out of date now.
         checkCache.clear();
@@ -830,8 +1002,12 @@
     $('[data-wl-ask-manual]').hidden = true;
     $('[data-wl-ask-list]').replaceChildren(...list.map((n) => proCard(n, msg)));
   }
-  $('[data-wl-nom-form]').addEventListener('submit', async (e) => {
-    e.preventDefault();
+  // Any handle typed into the step 2 boxes (saved or not).
+  const lateNomsTyped = () => $$('input', $('[data-wl-noms-late]')).some((i) => i.value.trim());
+  // Saves the step 2 pros (the Save button, or Skip with handles typed).
+  let savingNoms = false;
+  async function saveLateNoms() {
+    if (savingNoms) return;
     const err = $('#wl-noms-late-err');
     const n = lateNoms.read();
     if (n.bad || !n.list.length) {
@@ -839,8 +1015,9 @@
       err.hidden = false;
       return;
     }
+    savingNoms = true;
     try {
-      const { ok, status: code, data } = await post({ action: 'update', manage_token: store.get(KEYS.key), nominations: n.list });
+      const { ok, status: code, data } = await post({ action: 'update', manage_token: myKey(), nominations: n.list });
       if (ok && data && data.referral_code) {
         showSuccess({ ...data, already_joined: current.already_joined }, { role: current.role, region: current.region, city: current.city });
         say('Thanks. Now let them know.');
@@ -854,7 +1031,13 @@
     } catch {
       err.textContent = "We couldn't reach BookNStyle. Check your connection and try again.";
       err.hidden = false;
+    } finally {
+      savingNoms = false;
     }
+  }
+  $('[data-wl-nom-form]').addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveLateNoms();
   });
 
   // ----- Founding badges and the client reward (never a place in line) -----
@@ -1131,14 +1314,19 @@
     store.del(KEYS.key);
     store.del(KEYS.state);
     current = null;
+    memKey = null;
     success.hidden = true;
     form.hidden = false;
+    step = 1;
+    seg = ['', '', ''];
+    showBar = false;
+    acted3 = false;
+    applyStep();
   }
   $('[data-wl-reset]').addEventListener('click', () => {
     forget();
     store.del(KEYS.mine);
     form.reset();
-    noms.reset();
     handleInput.removeAttribute('data-touched');
     handleCheck.set('');
     syncRole();
