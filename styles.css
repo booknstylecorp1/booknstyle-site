@@ -4,6 +4,17 @@
    image). prefers-reduced-motion shows the finished, still logo. */
 
 /* ==========================================================================
+   0. Fonts: hosted here (assets/fonts, SIL Open Font License), not on Google's
+   servers, so the first view on cellular needs no extra connections. Each
+   page preloads the Bodoni files and Inter, so headlines are drawn in Bodoni
+   from the first paint instead of jumping when it arrives. Latin only (the
+   subset Google served). Both families are variable fonts.
+   ========================================================================== */
+@font-face { font-family: "Bodoni Moda"; font-style: normal; font-weight: 400 500; font-display: swap; src: url("assets/fonts/bodoni-moda.woff2") format("woff2"); }
+@font-face { font-family: "Bodoni Moda"; font-style: italic; font-weight: 400 500; font-display: swap; src: url("assets/fonts/bodoni-moda-italic.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 400 600; font-display: swap; src: url("assets/fonts/inter.woff2") format("woff2"); }
+
+/* ==========================================================================
    1. Tokens
    ========================================================================== */
 :root {
@@ -840,4 +851,99 @@ html:not(.js) .aud { display: none; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
   [data-parallax] { transform: none !important; }
+}
+
+/* ==========================================================================
+   20. Founding Pro Link offer, the pro tools drawer, the plain-facts card
+   (luxury refinement, Oct 30 2026: R3 and R24)
+   ========================================================================== */
+/* One named offer, word for word on the home page and the waitlist. No prices, no "free". */
+.offer {
+  position: relative; margin-top: 32px; padding: 26px clamp(20px, 2vw + 12px, 30px) 24px; border-radius: 26px;
+  border: 1px solid rgba(223, 185, 144, .38);
+  background: linear-gradient(160deg, rgba(200, 149, 106, .13), rgba(10, 11, 17, .42) 58%);
+  box-shadow: 0 30px 60px -40px rgba(0, 0, 0, .8);
+}
+.offer__title { font-family: var(--serif); font-weight: 400; font-size: clamp(1.55rem, 1.3rem + 1vw, 2rem); line-height: 1.1; letter-spacing: -.01em; color: var(--cream); }
+.offer__title em { font-style: italic; background: var(--grad-gold-text); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: .06em; }
+.offer__rule { display: block; height: 1px; margin: 16px 0 6px; background: linear-gradient(90deg, var(--champ), rgba(200, 149, 106, 0)); }
+.offer__list li { display: flex; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line-soft); color: var(--text); font-size: .98rem; line-height: 1.45; }
+.offer__list svg { flex: none; width: 11px; height: 11px; fill: var(--champ-l); translate: 0 1px; }
+.offer__hold { margin-top: 14px; font-family: var(--serif); font-style: italic; font-size: 1.08rem; color: var(--champ-l); }
+.offer .claim { margin-top: 18px; }
+
+/* The last pro tools, one tap away ("All pro tools") */
+.tools-more { margin-top: 0; }
+.tools-more > summary {
+  list-style: none; cursor: pointer; display: flex; width: fit-content; margin: 28px auto 0; align-items: center; gap: 10px;
+  min-height: 48px; padding: 0 22px; border-radius: 999px; border: 1px solid var(--line); color: var(--text);
+  font-size: .95rem; font-weight: 600; transition: border-color .3s, background-color .3s;
+}
+.tools-more > summary::-webkit-details-marker { display: none; }
+.tools-more > summary:hover { border-color: var(--champ-l); background: rgba(200, 149, 106, .08); }
+.tools-more > summary svg { width: 15px; height: 15px; fill: none; stroke: var(--champ-l); stroke-width: 1.8; stroke-linecap: round; transition: transform .5s var(--ease-out); }
+.tools-more[open] > summary svg { transform: rotate(45deg); }
+.tools-more[open] > summary { margin-bottom: 0; }
+.tools-more .rows { margin-top: 20px; }
+
+/* Trust: one card of plain facts above the four */
+.facts {
+  display: grid; gap: 8px; margin-bottom: 28px; padding: clamp(24px, 2vw + 12px, 34px) clamp(24px, 2vw + 14px, 40px);
+  border-radius: var(--radius-lg); background: #fff; border: 1px solid var(--ink-line); border-top: 2px solid var(--champ);
+}
+.facts__label { font-size: var(--fs-eyebrow); font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: #8A5F3C; }
+.facts p:last-child { font-family: var(--serif); font-size: clamp(1.2rem, 1.05rem + .6vw, 1.55rem); line-height: 1.35; color: var(--ink-text); }
+.facts a { color: #8A5F3C; text-underline-offset: 3px; }
+
+/* Over the light Trust section the see-through header would turn a muddy grey: solid near-black there (main.js) */
+.site-header.is-over-paper::before { opacity: 1; background: var(--ink-0); }
+
+/* Phones: a smaller hero logo with no spelled-out wordmark (the header docks the wordmark as soon as
+   you scroll), so the headline and the first button sit on the first screen */
+@media (max-width: 599px) {
+  .hero { padding-top: 58px; }
+  .hero .gr--hero { --h: 40px; margin-bottom: 6px; }
+  .hero .gr--hero .gr__word { display: none; }
+}
+
+/* Phones: a shorter home page (R3, about 13 screens instead of 19). Same content order and wording as
+   on larger screens; only the spacing tightens, the pros' phone trio (the hero already shows those
+   screens) steps aside, and the card grids go two across. */
+@media (max-width: 719px) {
+  :root { --section: 3.25rem; }
+  #pros .chapter__visual, #clients .chapter__visual { display: none; }
+  .section-head { margin-bottom: 2rem; }
+  .rows { margin-top: 2rem; }
+  .offer { margin-top: 24px; padding-top: 22px; }
+  .offer__list li { padding: 8px 0; font-size: .95rem; }
+  .row { padding-block: 20px; }
+  .row h3 { font-size: 1.22rem; }
+  .vig { margin-top: 12px; }
+  .vig-notes .note + .note { display: none; }
+  .cards { grid-template-columns: 1fr 1fr; }
+  .card { padding: 20px 16px 22px; }
+  .card__icon { width: 36px; height: 36px; margin-bottom: 14px; }
+  .card__icon svg { width: 17px; height: 17px; }
+  .card__n { top: 20px; right: 16px; font-size: .9rem; }
+  .card h3 { font-size: 1.12rem; }
+  .card p { font-size: .86rem; line-height: 1.5; margin-top: 6px; }
+  .tabs__list { margin-bottom: 26px; }
+  .step { display: grid; grid-template-columns: auto 1fr; column-gap: 16px; padding: 20px 0; }
+  .step__num { grid-row: span 2; font-size: 2.4rem; margin: 0; }
+  .step p { margin-top: 4px; }
+  .faq__item summary { padding: 18px 0; }
+  .finale .gr { --h: 48px; margin-bottom: 16px; }
+  .finale__card { padding-block: 44px; }
+  .site-footer { padding-top: 56px; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px 20px; }
+  .footer-brand, .footer-grid > .footer-col:last-child { grid-column: 1 / -1; }
+  .footer-word { margin-top: 36px; }
+}
+/* The claim box inside the offer card: on narrow phones the address breaks after "book/", never mid-word */
+.claim__host { white-space: nowrap; }
+@media (max-width: 479px) {
+  .offer { padding-inline: 16px; }
+  .offer .claim { padding-left: 16px; }
+  .offer .claim__url { font-size: .9rem; }
+  .offer .claim__url > svg { display: none; }
 }

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Join the waitlist | BookNStyle</title>
-  <meta name="description" content="Join the BookNStyle waitlist. Get launch news first, and beauty pros can claim their booking link before launch. For clients and beauty pros.">
+  <meta name="description" content="Join the BookNStyle waitlist. For beauty pros and their clients. Pros, claim your booking link before launch. No commission on your services.">
   <link rel="canonical" href="https://booknstyle.com/waitlist/">
   <meta name="theme-color" content="#0A0B11">
   <meta name="color-scheme" content="dark">
@@ -12,32 +12,34 @@
   <meta property="og:site_name" content="BookNStyle">
   <meta property="og:url" content="https://booknstyle.com/waitlist/">
   <meta property="og:title" content="Join the BookNStyle waitlist">
-  <meta property="og:description" content="Book barbers, stylists, nail and lash techs and more, all in one app. Join the waitlist and get launch news first.">
-  <meta property="og:image" content="https://booknstyle.com/assets/og.png">
+  <meta property="og:description" content="For beauty pros and their clients. Pros, claim your booking link before launch. No commission on your services.">
+  <meta property="og:image" content="https://booknstyle.com/assets/og.png?v=20261031">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="BookNStyle logo with the line: Book the beauty pros near you.">
+  <meta property="og:image:alt" content="BookNStyle logo with the line: Book the beauty pros near you. Launching soon across the US.">
   <meta property="og:locale" content="en_US">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Join the BookNStyle waitlist">
-  <meta name="twitter:description" content="Book beauty and personal care pros near you, all in one app. Join the waitlist and get launch news first.">
-  <meta name="twitter:image" content="https://booknstyle.com/assets/og.png">
-  <meta name="twitter:image:alt" content="BookNStyle logo with the line: Book the beauty pros near you.">
+  <meta name="twitter:description" content="For beauty pros and their clients. Pros, claim your booking link before launch. No commission on your services.">
+  <meta name="twitter:image" content="https://booknstyle.com/assets/og.png?v=20261031">
+  <meta name="twitter:image:alt" content="BookNStyle logo with the line: Book the beauty pros near you. Launching soon across the US.">
 
   <link rel="icon" href="../favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..500;1,6..96,400..500&amp;family=Inter:wght@400;500;600&amp;display=swap">
+  <link rel="preload" href="../assets/fonts/bodoni-moda.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../assets/fonts/bodoni-moda-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" as="image" href="../assets/mark.webp" type="image/webp">
-  <link rel="stylesheet" href="../styles.css">
-  <link rel="stylesheet" href="waitlist.css?v=20261030">
-  <script>document.documentElement.classList.add('js');</script>
+  <link rel="stylesheet" href="../styles.css?v=20261031a">
+  <link rel="stylesheet" href="waitlist.css?v=20261031a">
+  <!-- wl-for-pro: "Claim your booking link" buttons and /pro open with ?role=pro, so the top of the page speaks to pros
+       from the first paint (R4). Everything marked data-wl-for="pro" shows instead of data-wl-for="all". -->
+  <script>document.documentElement.classList.add('js');try{if((new URLSearchParams(location.search).get('role')||'').toLowerCase()==='pro')document.documentElement.classList.add('wl-for-pro');}catch(e){}</script>
   <!-- main.js: header, mobile menu, scroll reveal and the STORE_LINKS switch, same as the home page. -->
-  <script src="../main.js" defer></script>
-  <script src="waitlist.js?v=20261030" defer></script>
+  <script src="../main.js?v=20261031a" defer></script>
+  <script src="waitlist.js?v=20261031a" defer></script>
 </head>
 <body>
   <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
@@ -57,7 +59,6 @@
       <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
       <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.8"/><path d="M21 15l-5-5L5 21"/></symbol>
       <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7"/></symbol>
-      <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
       <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
       <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></symbol>
       <symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.1 15.9M14.5 14.5L20 20M8.1 8.1L12 12"/></symbol>
@@ -89,8 +90,8 @@
       </a>
       <nav class="site-nav" id="site-nav" aria-label="Primary">
         <ul role="list">
-          <li><a href="../#clients">For clients</a></li>
           <li><a href="../#pros">For pros</a></li>
+          <li><a href="../#clients">For clients</a></li>
           <li><a href="../#how">How it works</a></li>
           <li><a href="../#faq">FAQ</a></li>
         </ul>
@@ -131,17 +132,23 @@
             <span class="gr__word" aria-hidden="true"><span style="--i:0">B</span><span style="--i:1">O</span><span style="--i:2">O</span><span style="--i:3">K</span><span style="--i:4">N</span><span style="--i:5">S</span><span style="--i:6">T</span><span style="--i:7">Y</span><span style="--i:8">L</span><span style="--i:9">E</span></span>
           </div>
 
-          <p class="eyebrow wl-kicker intro" style="--d:1.1s" data-soon-only><span class="status__dot" aria-hidden="true"></span>Launching soon in New York</p>
+          <p class="eyebrow wl-kicker intro" style="--d:1.1s" data-soon-only><span class="status__dot" aria-hidden="true"></span>Launching soon across the US</p>
           <p class="eyebrow wl-kicker intro" style="--d:1.1s" data-live-only hidden><span class="status__dot" aria-hidden="true"></span>BookNStyle is live. <a class="wl-live-link" href="../#download">Get the app</a></p>
-          <h1 class="display wl-title intro" id="wl-title" style="--d:.25s">Get in <em>early.</em></h1>
+          <h1 class="display wl-title intro" id="wl-title" style="--d:.25s"><span data-wl-for="all">Get in <em>early.</em></span><span data-wl-for="pro">Claim your name <em>before launch.</em></span></h1>
           <!-- Pros who open a client's "Message your pro" link (?ref=CODE&role=pro): shown by waitlist.js. -->
           <div class="wl-hook intro" style="--d:.35s" data-wl-pro-hook hidden>
             <span class="wl-hook__icon" aria-hidden="true"><svg><use href="#i-heart"/></svg></span>
-            <p><strong>A client of yours sent you here.</strong> They want to book you on BookNStyle. Claim your booking link before launch, before someone else takes your name. Free to join, no commission on your bookings, and you're a Founding Pro.</p>
+            <p><strong>A client of yours sent you here.</strong> They want to book you on BookNStyle. Claim your booking link before launch, before someone else takes your name. No commission on your services, and you're a Founding Pro.</p>
           </div>
-          <p class="lead wl-lead intro" style="--d:.4s" data-soon-only>Join the BookNStyle waitlist and we'll email you the day the app launches. Beauty pros can claim their booking link now, before anyone else takes the name.</p>
+          <!-- Clients who tap "Join the list" on a pro's page (app.booknstyle.com/book/name, utm_source=pro_link): shown by waitlist.js (R6). -->
+          <div class="wl-hook intro" style="--d:.35s" data-wl-client-hook hidden>
+            <span class="wl-hook__icon" aria-hidden="true"><svg><use href="#i-heart"/></svg></span>
+            <p><strong>@<span data-wl-client-hook-handle></span> is coming to BookNStyle.</strong> Join below and we'll email you the day you can book them here.</p>
+          </div>
+          <p class="lead wl-lead intro" style="--d:.4s" data-soon-only data-wl-for="all">Join the BookNStyle waitlist and we'll email you the day the app launches. Beauty pros can claim their booking link now, before anyone else takes the name.</p>
+          <p class="lead wl-lead intro" style="--d:.4s" data-soon-only data-wl-for="pro">One booking link with your name on it, held for you until launch. No commission on your services.</p>
           <p class="lead wl-lead intro" style="--d:.4s" data-live-only hidden>The app is ready to download. Get it today, and share your link with friends.</p>
-          <!-- Live counter: filled from waitlist-info and shown only once the list passes 500. It counts everyone, not only New York. -->
+          <!-- Live counter: filled from waitlist-info and shown only once the list passes 500. Note: the server total (waitlist_public_total) counts only sign-ups known to be in New York; counting everyone needs a database change. -->
           <p class="wl-counter" data-wl-counter data-soon-only hidden><span class="wl-counter__n" data-wl-total></span><span>people are already on the list</span></p>
         </div>
 
@@ -180,12 +187,12 @@
               <legend>I am <span class="wl-req" aria-hidden="true">*</span></legend>
               <div class="wl-choices__row">
                 <label class="wl-choice">
-                  <input type="radio" name="role" value="client" required>
-                  <span class="wl-choice__box"><svg aria-hidden="true"><use href="#i-heart"/></svg><span class="wl-choice__t">A client</span><span class="wl-choice__s">Book my pros</span></span>
+                  <input type="radio" name="role" value="pro" required>
+                  <span class="wl-choice__box"><svg aria-hidden="true"><use href="#i-scissors"/></svg><span class="wl-choice__t">A pro</span><span class="wl-choice__s">Barber, stylist, nails and more</span></span>
                 </label>
                 <label class="wl-choice">
-                  <input type="radio" name="role" value="pro">
-                  <span class="wl-choice__box"><svg aria-hidden="true"><use href="#i-scissors"/></svg><span class="wl-choice__t">A beauty pro</span><span class="wl-choice__s">Get booked</span></span>
+                  <input type="radio" name="role" value="client">
+                  <span class="wl-choice__box"><svg aria-hidden="true"><use href="#i-heart"/></svg><span class="wl-choice__t">A client</span><span class="wl-choice__s">Book my pros</span></span>
                 </label>
                 <label class="wl-choice">
                   <input type="radio" name="role" value="both">
@@ -211,7 +218,7 @@
             <!-- Pros (and "both"): claim a booking link with a live availability check, then specialty -->
             <div class="wl-group" data-wl-pro hidden>
               <div class="wl-field wl-claim">
-                <label for="wl-handle">Claim your booking link <span class="wl-optional">(optional)</span></label>
+                <label for="wl-handle">Your booking link</label>
                 <div class="wl-prefix wl-prefix--link">
                   <span aria-hidden="true">book/</span>
                   <input id="wl-handle" name="reserved_handle" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="30" inputmode="url" placeholder="yourname" aria-describedby="wl-handle-preview wl-handle-status wl-handle-err">
@@ -238,6 +245,7 @@
                   <option value="tattoo_artist">Tattoo artist</option>
                   <option value="other">Other</option>
                 </select>
+                <p class="wl-fine wl-license" data-wl-license hidden>Massage and tattoo open after a quick license check.</p>
                 <p class="wl-error" id="wl-specialty-err" hidden></p>
               </div>
             </div>
@@ -245,7 +253,9 @@
 
             <div class="wl-row">
               <div class="wl-field">
-                <label for="wl-zip">ZIP or neighborhood <span class="wl-optional">(optional)</span></label>
+                <!-- Open nationwide (Oct 30 2026): no "outside New York" box. waitlist.js
+                     sends outside_ny from the ZIP so waitlist-join keeps its region. -->
+                <label for="wl-zip">ZIP code <span class="wl-optional">(optional)</span></label>
                 <input id="wl-zip" name="zip_or_area" type="text" autocomplete="postal-code" maxlength="60" aria-describedby="wl-zip-err">
                 <p class="wl-error" id="wl-zip-err" hidden></p>
               </div>
@@ -257,19 +267,6 @@
                   <input id="wl-social" name="social_handle" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="60" aria-describedby="wl-social-err" placeholder="yourhandle">
                 </div>
                 <p class="wl-error" id="wl-social-err" hidden></p>
-              </div>
-            </div>
-
-            <div class="wl-field wl-outside">
-              <label class="wl-check wl-check--small" for="wl-outside">
-                <input id="wl-outside" name="outside_ny" type="checkbox">
-                <span>I live outside New York</span>
-              </label>
-              <div class="wl-field wl-cityfield" data-wl-city-field hidden>
-                <p class="wl-note"><svg aria-hidden="true"><use href="#i-pin"/></svg><span>We start in New York, you'll hear when we reach your city.</span></p>
-                <label for="wl-city">Your city <span class="wl-optional">(optional)</span></label>
-                <input id="wl-city" name="city" type="text" autocomplete="address-level2" maxlength="60" aria-describedby="wl-city-err">
-                <p class="wl-error" id="wl-city-err" hidden></p>
               </div>
             </div>
 
@@ -307,7 +304,6 @@
             <p class="eyebrow wl-success__eyebrow" data-wl-eyebrow data-wl-slot="head">You're on the list</p>
             <h2 class="wl-done" tabindex="-1" data-wl-done data-wl-slot="head">You're <em>in.</em></h2>
             <p class="wl-success__lead" data-wl-lead data-wl-slot="head">Check your inbox for a welcome email.</p>
-            <p class="wl-city" data-wl-city data-wl-slot="head" hidden><svg aria-hidden="true"><use href="#i-pin"/></svg><span>We start in New York, you'll hear when we reach <span data-wl-city-name>your city</span>.</span></p>
 
             <!-- Steps 2 and 3: "Step 2 of 3, Your pro" (waitlist.js), then step 3's heading -->
             <p class="wl-step-kicker" data-wl-step-kicker data-wl-slot="kicker" hidden></p>
@@ -417,9 +413,10 @@
               </ul>
               <p class="wl-status" role="status" aria-live="polite" data-wl-status></p>
             </div>
+            <p class="wl-fine wl-success__fine" data-wl-slot="share">Instagram and TikTok don't take links from websites, so the Instagram, TikTok and Snapchat buttons share your story image and copy your link: paste it with the Link sticker on Instagram, the Link tool on Snapchat, or in your TikTok caption.</p>
 
             <!-- One-tap story image, drawn in the browser (no server) -->
-            <section class="wl-panel wl-story" aria-labelledby="wl-story-title" data-wl-slot="share">
+            <section class="wl-panel wl-story" aria-labelledby="wl-story-title" data-wl-slot="story">
               <img class="wl-story__thumb" alt="Your story image: I'm in. BookNStyle is launching soon, with your link." width="108" height="192" data-wl-story-thumb hidden>
               <div class="wl-story__body">
                 <p class="wl-panel__label" id="wl-story-title">Post it to your story</p>
@@ -428,7 +425,51 @@
               </div>
             </section>
 
-            <p class="wl-fine wl-success__fine" data-wl-slot="share">Instagram and TikTok don't take links from websites, so the Instagram, TikTok and Snapchat buttons share your story image and copy your link: paste it with the Link sticker on Instagram, the Link tool on Snapchat, or in your TikTok caption.</p>
+            <!-- Pros: the Founding Pro Kit (R1). Images drawn here with the pro's own link, in the Pro Kit's look
+                 (Coming soon, How to book; Launch day only once BookNStyle is live), a text for their regulars and a bio line. -->
+            <section class="wl-panel wl-kit" data-wl-kit data-wl-slot="kit" hidden aria-labelledby="wl-kit-title">
+              <p class="wl-panel__label" id="wl-kit-title">Your Founding Pro Kit</p>
+              <p class="wl-fine">Story images with your name, a text for your regulars and a bio line. Change any word you like.</p>
+              <div data-wl-kit-body>
+                <div class="wl-field wl-kit__craft">
+                  <label for="wl-kit-craft">Your craft</label>
+                  <select id="wl-kit-craft" data-wl-kit-craft>
+                    <option value="general">All beauty pros</option>
+                    <option value="barber">Barber</option>
+                    <option value="braids">Braids and locs</option>
+                    <option value="nails">Nails</option>
+                    <option value="lashes">Lashes and brows</option>
+                    <option value="makeup">Makeup</option>
+                    <option value="skin">Skin</option>
+                    <option value="massage">Massage</option>
+                    <option value="tattoo">Tattoo</option>
+                  </select>
+                </div>
+                <div class="wl-kit__shots" role="group" aria-label="Choose a story image" data-wl-kit-shots></div>
+                <div class="wl-kit__actions">
+                  <button class="btn btn--gold btn--sm" type="button" data-wl-kit-save><svg aria-hidden="true"><use href="#i-image"/></svg><span data-wl-kit-save-label>Save image</span></button>
+                  <button class="wl-share__btn" type="button" data-wl-kit-text><svg aria-hidden="true"><use href="#i-chat"/></svg>Copy text for your regulars</button>
+                  <button class="wl-share__btn" type="button" data-wl-kit-bio><svg aria-hidden="true"><use href="#i-copy"/></svg>Copy bio line</button>
+                </div>
+                <p class="wl-status" role="status" aria-live="polite" data-wl-kit-status></p>
+                <p class="wl-fine">Post the image to your story, then add your link with the Link sticker on the gold box.</p>
+              </div>
+              <p class="wl-fine" data-wl-kit-nolink hidden>Claim your booking link above and your kit is drawn with your name on it.</p>
+            </section>
+
+            <!-- Pros: invite another pro (R5). Counts only, never names, and no reward is promised here. -->
+            <section class="wl-panel wl-proinvite" data-wl-proinvite data-wl-slot="proinvite" hidden aria-labelledby="wl-pi-title">
+              <p class="wl-panel__label" id="wl-pi-title">Know a pro who should reserve their name?</p>
+              <p class="wl-fine">Share the waitlist with them, so they can claim their link before someone else does.</p>
+              <div class="wl-link">
+                <textarea readonly rows="1" spellcheck="false" aria-label="Your invite link for pros" data-wl-pi-link></textarea>
+                <button class="btn btn--gold btn--sm" type="button" data-wl-pi-copy><svg aria-hidden="true"><use href="#i-copy"/></svg>Copy</button>
+              </div>
+              <button class="wl-share__btn wl-proinvite__share" type="button" data-wl-pi-share hidden><svg aria-hidden="true"><use href="#i-share"/></svg>Share</button>
+              <p class="wl-badge__count" data-wl-pi-count hidden></p>
+              <p class="wl-status" role="status" aria-live="polite" data-wl-pi-status></p>
+            </section>
+
             <!-- Step buttons: Back (step 3), a quiet Skip (a quiet Done on step 3), and a gold Next or Done once there's something to keep -->
             <p class="wl-status wl-step-status" role="status" aria-live="polite" data-wl-step-status data-wl-slot="nav"></p>
             <div class="wl-stepnav" data-wl-stepnav data-wl-slot="nav" hidden>
@@ -461,8 +502,7 @@
             </li>
           </ul>
           <ul class="hero__meta wl-meta intro" role="list" style="--d:1s">
-            <li>Free to join</li>
-            <li>For clients and beauty pros</li>
+            <li>For beauty pros and their clients</li>
             <li>Unsubscribe anytime</li>
           </ul>
         </div>
@@ -478,7 +518,7 @@
         </div>
         <ol class="steps" role="list">
           <li class="step reveal"><span class="step__num" aria-hidden="true">01</span><h3>Join</h3><p>Add your name and email. Pros, claim your booking link while you're here.</p></li>
-          <li class="step reveal" style="--d:.08s"><span class="step__num" aria-hidden="true">02</span><h3>Share your link</h3><p>Clients, bring <span data-wl-milestone>3</span> friends with your link and your first booking fee is on us. Everyone who joins gets a Founding badge.</p></li>
+          <li class="step reveal" style="--d:.08s"><span class="step__num" aria-hidden="true">02</span><h3 data-wl-for="all">Share your link</h3><h3 data-wl-for="pro">Tell your clients</h3><p data-wl-for="all">Clients, bring <span data-wl-milestone>3</span> friends with your link and your first booking fee is on us. Everyone who joins gets a Founding badge.</p><p data-wl-for="pro">Share your link so they're ready to book you on day one.</p></li>
           <li class="step reveal" style="--d:.16s"><span class="step__num" aria-hidden="true">03</span>
             <h3 data-soon-only>Launch day</h3><h3 data-live-only hidden>Get the app</h3>
             <p data-soon-only>We'll email you the moment BookNStyle is ready to download.</p>
@@ -496,19 +536,59 @@
         <div>
           <p class="eyebrow reveal"><span class="eyebrow__rule"></span>For beauty pros</p>
           <h2 class="title reveal" id="wl-pros-title" style="--d:.06s">Your business, <em>your rules.</em></h2>
-          <p class="lead reveal" style="--d:.12s">Tired of giving up a cut of every booking? BookNStyle takes no commission on your bookings, and you set the deposits, policies and hours that work for you.</p>
-          <a class="claim reveal" href="#join" data-wl-pick-role="pro" style="--d:.16s">
-            <span class="claim__label">Claim it before launch</span>
-            <span class="claim__url"><svg aria-hidden="true"><use href="#i-link"/></svg>app.booknstyle.com/book/<strong>yourname</strong><span class="claim__caret" aria-hidden="true"></span></span>
+          <p class="lead reveal" style="--d:.12s">Tired of giving up a cut of your new clients? BookNStyle takes no commission on your services, and you set the deposits, policies and hours that work for you.</p>
+        </div>
+        <!-- The one named pro offer (R3), word for word as on the home page. No prices, no "free". -->
+        <div class="offer reveal" style="--d:.06s" data-soon-only>
+          <h3 class="offer__title" id="wl-offer-title">Your <em>Founding Pro Link</em></h3>
+          <span class="offer__rule" aria-hidden="true"></span>
+          <ul class="offer__list" role="list" aria-labelledby="wl-offer-title">
+            <li><svg aria-hidden="true"><use href="#spark"/></svg>A booking link with your name.</li>
+            <li><svg aria-hidden="true"><use href="#spark"/></svg>Founding Pro badge on your profile.</li>
+            <li><svg aria-hidden="true"><use href="#spark"/></svg>No commission on your services.</li>
+            <li><svg aria-hidden="true"><use href="#spark"/></svg>Deposits and late-cancel policies you set.</li>
+            <li><svg aria-hidden="true"><use href="#spark"/></svg>Payouts sent to your bank automatically.</li>
+          </ul>
+          <p class="offer__hold">Held for you until 60 days after launch.</p>
+          <a class="claim" href="#join" data-wl-pick-role="pro">
+            <span class="claim__label">Claim your link</span>
+            <span class="claim__url"><svg aria-hidden="true"><use href="#i-link"/></svg><span class="claim__host">app.booknstyle.com/book/</span><strong>yourname</strong><span class="claim__caret" aria-hidden="true"></span></span>
             <span class="claim__go" aria-hidden="true"><svg><use href="#i-arrow"/></svg></span>
           </a>
         </div>
-        <ul class="pillars wl-pillars" role="list">
-          <li class="pillar reveal"><strong>Zero commission</strong><span>No cut of your bookings.</span></li>
-          <li class="pillar reveal" style="--d:.06s"><strong>No new-client fees</strong><span>A client who finds you in the app is still your client.</span></li>
-          <li class="pillar reveal" style="--d:.12s"><strong>Your rules</strong><span>Deposits, cancellation policy and reschedule cutoff.</span></li>
-          <li class="pillar reveal" style="--d:.18s"><strong>Payouts to your bank</strong><span>Automatic, through Stripe.</span></li>
-        </ul>
+      </div>
+    </section>
+
+    <!-- ============ FAQ (R4: pros first) ============ -->
+    <section class="section section--deep" id="faq" aria-labelledby="wl-faq-title">
+      <div class="container faq">
+        <div class="faq__intro">
+          <p class="eyebrow reveal"><span class="eyebrow__rule"></span>FAQ</p>
+          <h2 class="title reveal" id="wl-faq-title" style="--d:.06s">Questions, <em>answered.</em></h2>
+          <p class="reveal" style="--d:.12s">Still wondering about something? Email <a href="mailto:support@booknstyle.com">support@booknstyle.com</a>.</p>
+        </div>
+        <div class="faq__list reveal">
+          <details class="faq__item" name="faq">
+            <summary>Can I bring my current clients?<span class="faq__icon" aria-hidden="true"><svg><use href="#i-plus"/></svg></span></summary>
+            <div class="faq__answer"><p>Yes. Share your booking link with your regulars now. They join your list there, and we'll email them the day they can book you on BookNStyle. A client who finds you in the app is still your client.</p></div>
+          </details>
+          <details class="faq__item" name="faq">
+            <summary>What happens to the link I claim?<span class="faq__icon" aria-hidden="true"><svg><use href="#i-plus"/></svg></span></summary>
+            <div class="faq__answer"><p>It's held for you until 60 days after launch. Sign up in the app as a pro with the email you joined with, and it becomes your booking page. With Sign in with Apple, choose Share My Email.</p></div>
+          </details>
+          <details class="faq__item" name="faq">
+            <summary>Is BookNStyle in my state?<span class="faq__icon" aria-hidden="true"><svg><use href="#i-plus"/></svg></span></summary>
+            <div class="faq__answer"><p>BookNStyle is launching soon across the US. Join the waitlist and we'll email you the day you can take bookings where you are.</p></div>
+          </details>
+          <details class="faq__item" name="faq">
+            <summary>What do clients get for joining?<span class="faq__icon" aria-hidden="true"><svg><use href="#i-plus"/></svg></span></summary>
+            <div class="faq__answer"><p>A Founding Member badge and launch news first. Bring <span data-wl-milestone>3</span> friends with your link, and your first booking fee is on us.</p></div>
+          </details>
+          <details class="faq__item" name="faq">
+            <summary>Who can join?<span class="faq__icon" aria-hidden="true"><svg><use href="#i-plus"/></svg></span></summary>
+            <div class="faq__answer"><p>Beauty pros and their clients, adults 18 and older in the United States.</p></div>
+          </details>
+        </div>
       </div>
     </section>
   </main>
@@ -525,8 +605,8 @@
       <nav class="footer-col" aria-label="Explore">
         <h2 class="footer-title">Explore</h2>
         <ul role="list">
-          <li><a href="../#clients">For clients</a></li>
           <li><a href="../#pros">For pros</a></li>
+          <li><a href="../#clients">For clients</a></li>
           <li><a href="../#how">How it works</a></li>
           <li><a href="../#faq">FAQ</a></li>
         </ul>

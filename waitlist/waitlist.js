@@ -10,7 +10,12 @@
    at the top of the card shows from step 2 on, with Join already filled.
    Every later step can be skipped (it fills grey); the bar never goes back.
    Server side: supabase/functions/waitlist-join and waitlist-info,
-   migrations 052 and 053. */
+   migrations 052 and 053.
+   Oct 30 2026 (luxury refinement): a pro's step 3 is "Tell your clients":
+   the link they share is their own held page (app.booknstyle.com/book/name),
+   with a text for their regulars, and the Founding Pro Kit (story images
+   drawn here with their name, and a bio line) replaces the "I'm in." image
+   for pros. Under it, a quiet invite for other pros with a count (R1, R5). */
 
 (() => {
   'use strict';
@@ -33,18 +38,30 @@
 
   const SHARE_TEXT = {
     client: "I just joined the BookNStyle waitlist. It's a new app for booking barbers, stylists, nail and lash techs and more. Join with my link:",
-    pro: "I just joined the BookNStyle waitlist. It's a new booking app for beauty pros, with no commission on bookings. Join with my link:",
+    // A pro's step 3 is "Tell your clients" (R1): the text for their regulars.
+    // The link goes alone on the last line, with no period after it, so it never breaks.
+    pro: "I'm moving my bookings to BookNStyle. Join the list so you can book me the day it opens:",
   };
+  // What a pro sends another pro (R5). No reward is promised: the free month
+  // only works for plans billed on our website, not Apple.
+  const PRO_INVITE_TEXT = 'I just claimed my booking link on BookNStyle. Claim yours before someone takes your name:';
+  // Pros outside New York: New York opens on launch day, every other state soon
+  // after (state rules plan, Oct 30 2026), and their hold runs from their state's opening (R4).
+  const LATER_STATE_NOTE = 'Your state opens soon after launch. Your link stays held until 60 days after launch.';
   // "Let your pro know": the message a client sends each pro they named, with
   // their pro invite link (?ref=CODE&role=pro&utm_campaign=<id>) after it.
   // Each browser gets one of these at random and keeps it, so a client always
   // sees the same message. The id rides on the link, so the waitlist export's
   // utm_campaign column shows which message brought each pro in.
-  // Owner-approved wording, Oct 26 and 27 2026.
+  // Owner-approved wording, Oct 26 and 27 2026; ask_thought reworded and
+  // ask_nationwide added (an A/B test of the two lines) Oct 30 2026.
   const ASK_TEXTS = [
     { id: 'ask_default', text: "I just joined the BookNStyle waitlist. You should be on it, it's built for pros like you:" },
     { id: 'ask_goto', text: "You're my go-to, so I put you on BookNStyle's list. It's a new booking app made for pros, no commission on your services. Grab your booking link before someone takes your name:" },
-    { id: 'ask_thought', text: "Saw this and thought of you. BookNStyle is launching in NYC and pros can claim their booking link now. I'd book you on it in a heartbeat:" },
+    // Oct 30 2026, nationwide: "launching in NYC" became "launching soon across
+    // the US" (same utm id so its results keep adding up).
+    { id: 'ask_thought', text: "Saw this and thought of you. BookNStyle is launching soon across the US, and pros can claim their booking link now. I'd book you on it in a heartbeat:" },
+    { id: 'ask_nationwide', text: "Saw this and thought of you. BookNStyle is coming soon nationwide, and pros can claim their booking link now. I'd book you on it in a heartbeat:" },
     { id: 'ask_clients', text: "Your clients are joining BookNStyle. I just did. Claim your booking link so we can book you there:" },
   ];
   const PRO_INVITE_FALLBACK = 'https://booknstyle.com/waitlist?role=pro&utm_source=client_invite';
@@ -61,7 +78,7 @@
   // ref: a friend's code from ?ref=; mine: my own code; utm: first visit's
   // tags; key: the manage key this browser got when it joined; state: the
   // last answer, shown at once on a return visit while it refreshes.
-  const KEYS = { ref: 'bns_waitlist_ref', mine: 'bns_waitlist_mine', utm: 'bns_waitlist_utm', key: 'bns_waitlist_key', state: 'bns_waitlist_state', ask: 'bns_waitlist_ask' };
+  const KEYS = { ref: 'bns_waitlist_ref', mine: 'bns_waitlist_mine', utm: 'bns_waitlist_utm', key: 'bns_waitlist_key', state: 'bns_waitlist_state', ask: 'bns_waitlist_ask', craft: 'bns_waitlist_craft' };
   const CODE = /^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{7}$/;
   const HANDLE = /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$/;
   const SOCIAL = /^[a-z0-9._]{1,30}$/;
@@ -119,12 +136,12 @@
   // showBar: only for a new sign-up in this visit. A return visit sees the
   // whole view with no bar (the page doesn't remember what was shared, so
   // it can't say step 3 was done).
-  const STEP_LABELS = { client: ['Join', 'Your pro', 'Friends'], pro: ['Join', 'Booking link', 'Share'] };
-  const STEP_TITLE = { client: 'Invite your friends', pro: 'Share your link' };
+  const STEP_LABELS = { client: ['Join', 'Your pro', 'Friends'], pro: ['Join', 'Booking link', 'Your clients'] };
+  const STEP_TITLE = { client: 'Invite your friends', pro: 'Tell your clients' };
   const STEP_SLOTS = {
-    client: { 2: ['head', 'kicker', 'pros', 'nav'], 3: ['kicker', 'step3', 'reward', 'share', 'nav'] },
-    both: { 2: ['head', 'kicker', 'pros', 'nav'], 3: ['kicker', 'step3', 'reward', 'share', 'nav'] },
-    pro: { 2: ['head', 'kicker', 'claimed', 'probadge', 'nav'], 3: ['kicker', 'step3', 'share', 'nav'] },
+    client: { 2: ['head', 'kicker', 'pros', 'nav'], 3: ['kicker', 'step3', 'reward', 'share', 'story', 'nav'] },
+    both: { 2: ['head', 'kicker', 'pros', 'nav'], 3: ['kicker', 'step3', 'reward', 'share', 'story', 'nav'] },
+    pro: { 2: ['head', 'kicker', 'claimed', 'probadge', 'nav'], 3: ['kicker', 'step3', 'share', 'kit', 'proinvite', 'nav'] },
   };
   let step = 1; // 1, 2, 3 or 'done'
   let seg = ['', '', ''];
@@ -161,6 +178,15 @@
   const proHook = $('[data-wl-pro-hook]');
   if (proHook && CODE.test(urlRef) && urlRef !== mine && (params.get('role') || '').toLowerCase() === 'pro' && !isLive()) {
     proHook.hidden = false;
+  }
+
+  // A client who tapped "Join the list" on a pro's page (app.booknstyle.com/book/name
+  // sends utm_source=pro_link&utm_campaign=<name>): say whose list they're joining (R6).
+  const clientHook = $('[data-wl-client-hook]');
+  const fromProLink = (params.get('utm_source') || '') === 'pro_link' ? (params.get('utm_campaign') || '').toLowerCase() : '';
+  if (clientHook && HANDLE.test(fromProLink) && !isLive()) {
+    $('[data-wl-client-hook-handle]').textContent = fromProLink;
+    clientHook.hidden = false;
   }
 
   // ---------- UTM tags: the first visit's, kept for a later sign-up ----------
@@ -385,7 +411,7 @@
     proWrap.hidden = !isPro;
     socialField.hidden = !isPro;
     if (step === 1) paintSteps(role);
-    if (!isPro) { el('specialty').value = ''; el('social_handle').value = ''; clearError('social_handle'); }
+    if (!isPro) { el('specialty').value = ''; el('social_handle').value = ''; clearError('social_handle'); if (licenseNote) licenseNote.hidden = true; }
     else if (!handleInput.value && !handleInput.dataset.touched) {
       const s = slugify(el('name').value);
       if (s.length >= 3) suggest(s);
@@ -396,19 +422,21 @@
     if (input) { input.checked = true; syncRole(); }
   };
   roleInputs.forEach((r) => r.addEventListener('change', () => { syncRole(); clearError('role'); }));
+  // Massage and tattoo open after a quick license check (R4).
+  const licenseNote = $('[data-wl-license]');
+  const syncLicense = () => { licenseNote.hidden = !['massage_therapist', 'tattoo_artist'].includes(el('specialty').value); };
+  el('specialty').addEventListener('change', syncLicense);
   // The first syncRole() runs below, after the error helpers exist (it can
   // start a link check, whose callback clears an error).
 
-  // ---------- Outside New York ----------
-  const cityField = $('[data-wl-city-field]');
-  el('outside_ny').addEventListener('change', () => {
-    cityField.hidden = !el('outside_ny').checked;
-    if (cityField.hidden) el('city').value = '';
-  });
+  // ---------- Region, from the ZIP ----------
+  // Open nationwide (Oct 30 2026): the "I live outside New York" box and the
+  // city field are gone. The page still sends outside_ny (true for a US ZIP
+  // outside New York State) so waitlist-join, which is unchanged, keeps
+  // filling region the same way. Same rule as isNyZip() on the server.
   // New York State ZIPs: 005, 100 to 149, and 06390.
   const nyZip = (z) => { const p = Number(z.slice(0, 3)); return (p >= 100 && p <= 149) || ['00501', '00544', '06390'].includes(z.slice(0, 5)); };
   const localRegion = () => {
-    if (el('outside_ny').checked) return 'outside_ny';
     const m = el('zip_or_area').value.trim().match(/^(\d{5})(?:-\d{4})?$/);
     return m ? (nyZip(m[1]) ? 'ny' : 'outside_ny') : null;
   };
@@ -422,13 +450,12 @@
     zip_or_area: () => el('zip_or_area'),
     social_handle: () => el('social_handle'),
     reserved_handle: () => handleInput,
-    city: () => el('city'),
     consent: () => el('consent'),
   };
   const ERROR_ID = {
     name: 'wl-name-err', email: 'wl-email-err', role: 'wl-role-err', specialty: 'wl-specialty-err',
     zip_or_area: 'wl-zip-err', social_handle: 'wl-social-err', reserved_handle: 'wl-handle-err',
-    city: 'wl-city-err', consent: 'wl-consent-err',
+    consent: 'wl-consent-err',
   };
   const formError = $('[data-wl-form-error]');
 
@@ -456,7 +483,7 @@
     }
   }
   const clearAll = () => { Object.keys(ERROR_ID).forEach(clearError); formError.hidden = true; formError.textContent = ''; };
-  ['name', 'email', 'zip_or_area', 'social_handle', 'specialty', 'city'].forEach((f) => {
+  ['name', 'email', 'zip_or_area', 'social_handle', 'specialty'].forEach((f) => {
     FIELD_INPUT[f]().addEventListener('input', () => clearError(f));
   });
   el('consent').addEventListener('change', () => clearError('consent'));
@@ -478,7 +505,7 @@
     const email = el('email').value.trim();
     if (!email) errors.push(['email', 'Please enter your email.']);
     else if (!EMAIL.test(email)) errors.push(['email', "That email doesn't look right. Please check it."]);
-    if (!role) errors.push(['role', 'Please choose client, beauty pro, or both.']);
+    if (!role) errors.push(['role', 'Please choose pro, client, or both.']);
     if (role === 'pro' || role === 'both') {
       const st = handleCheck.state;
       // Only a link the pro typed can stop the form (a suggestion is dropped).
@@ -533,8 +560,8 @@
       // join itself always sends none, as it did when that box was left empty.
       nominations: [],
       zip_or_area: el('zip_or_area').value.trim() || null,
-      outside_ny: el('outside_ny').checked === true,
-      city: el('outside_ny').checked ? (el('city').value.trim() || null) : null,
+      outside_ny: localRegion() === 'outside_ny',
+      city: null,
       social_handle: isPro ? (el('social_handle').value.trim() || null) : null,
       consent: el('consent').checked === true,
       ref: refField.value || null,
@@ -544,6 +571,9 @@
       website: el('website').value,
       elapsed_ms: Math.round(performance.now() - loadedAt),
     };
+
+    // The kit opens on this craft (only this browser keeps it; the server isn't asked).
+    if (isPro && el('specialty').value) store.set(KEYS.craft, el('specialty').value);
 
     busy = true;
     submitBtn.setAttribute('aria-busy', 'true');
@@ -558,7 +588,7 @@
         ({ ok, data } = await post(payload));
       }
       if (ok && data && data.referral_code) {
-        showSuccess(data, { role, region: localRegion(), city: payload.city, fromForm: true });
+        showSuccess(data, { role, region: localRegion(), fromForm: true });
         return;
       }
       if (data && data.field && ERROR_ID[data.field]) {
@@ -609,6 +639,24 @@
       let ok = false;
       try { ok = document.execCommand('copy'); } catch {}
       if (!fallbackInput) input.value = shown;
+      return ok;
+    }
+  }
+
+  // Copies any text (the kit's text and bio line, the pro invite link). If the
+  // clipboard API is refused, the old-style copy from a box off screen.
+  async function copyText(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const box = h('textarea', { readonly: '', 'aria-hidden': 'true', style: 'position:fixed;top:0;left:-9999px;opacity:0' });
+      box.value = text;
+      document.body.append(box);
+      box.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch {}
+      box.remove();
       return ok;
     }
   }
@@ -665,26 +713,26 @@
     }
     $('[data-wl-lead]').textContent = lead;
 
-    // Coming to your city
-    const outside = current.region === 'outside_ny';
-    $('[data-wl-city]').hidden = !outside;
-    $('[data-wl-city-name]').textContent = outside && current.city ? current.city : 'your city';
-
     renderClaimed(isPro);
     renderAsk(isClient);
     renderBadges(isPro, isClient);
 
     // Share link and buttons
     // Shown without "https://" so the whole code fits; Copy and the share
-    // buttons always use the full link.
-    $('[data-wl-link]').value = url.replace(/^https?:\/\//, '');
-    const text = isPro ? SHARE_TEXT.pro : SHARE_TEXT.client;
+    // buttons always use the full link. A pro (not "both", who has the
+    // friends reward) shares their own held page with their regulars; with
+    // no link claimed yet, their waitlist link for clients.
+    const proOnly = role === 'pro';
+    const shareUrl = proOnly ? clientLinkFor(current) : url;
+    $('[data-wl-link]').value = shareUrl.replace(/^https?:\/\//, '');
+    $('label[for="wl-link"]').textContent = proOnly && current.reserved_handle ? 'Your booking link' : 'Your link';
+    const text = proOnly ? SHARE_TEXT.pro : SHARE_TEXT.client;
     // X and Facebook have web share pages. (Facebook takes only the link; the
     // page's Open Graph tags give the picture and title.)
-    $('[data-wl-share="x"]').href = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-    $('[data-wl-share="facebook"]').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    $('[data-wl-share="x"]').href = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
+    $('[data-wl-share="facebook"]').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
     const nativeItem = $('[data-wl-native]');
-    const shareData = { title: 'BookNStyle waitlist', text, url };
+    const shareData = { title: proOnly ? 'BookNStyle' : 'BookNStyle waitlist', text, url: shareUrl };
     if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
       nativeItem.hidden = false;
       $('[data-wl-share-native]').onclick = async () => {
@@ -692,16 +740,20 @@
       };
     }
     $('[data-wl-copy]').onclick = async () => {
-      say((await copy(url)) ? 'Link copied.' : 'Press and hold the link to copy it.');
+      say((await copy(shareUrl)) ? 'Link copied.' : 'Press and hold the link to copy it.');
     };
     // Instagram, TikTok and Snapchat: no web share links. Copy the link and
     // hand over the story image (the phone's share sheet lists the apps), or
     // save it where the browser can't share files.
     $$('[data-wl-share-app]').forEach((btn) => {
-      btn.onclick = () => shareToApp(btn.dataset.wlShareApp, url);
+      btn.onclick = () => shareToApp(btn.dataset.wlShareApp, shareUrl, proOnly);
     });
 
-    prepareStory();
+    // Pros get the kit instead of the "I'm in." story image (a drawing still
+    // under way is dropped).
+    if (!proOnly) prepareStory(); else { storySeq += 1; $('.wl-story').hidden = true; }
+    renderKit(isPro);
+    renderProInvite(isPro);
     $('[data-wl-reset]').hidden = !local.fromStorage;
 
     form.hidden = true;
@@ -835,12 +887,14 @@
   success.addEventListener('click', (e) => {
     if (step !== 3 || acted3) return;
     const hit = e.target.closest('button, a');
-    if (hit && hit.closest('[data-wl-slot="share"]')) { acted3 = true; applyStep(); }
+    if (hit && hit.closest('[data-wl-slot="share"], [data-wl-slot="story"], [data-wl-slot="kit"], [data-wl-slot="proinvite"]')
+      && !hit.closest('[data-wl-kit-shots]')) { acted3 = true; applyStep(); }
   });
 
   // ----- Pro: the claimed link -----
   // Same promise as the welcome email and the Privacy Policy (migration 053).
-  const HOLD_NOTE = 'Held for you until 60 days after launch. Sign up in the app as a pro with this email to get it. With Sign in with Apple, choose Share My Email.';
+  const HOLD_SIGNUP = 'Sign up in the app as a pro with this email to get it. With Sign in with Apple, choose Share My Email.';
+  const HOLD_NOTE = `Held for you until 60 days after launch. ${HOLD_SIGNUP}`;
   const claimed = $('[data-wl-claimed]');
   const linkForm = $('[data-wl-link-form]');
   const linkInput = $('#wl-handle2');
@@ -859,7 +913,9 @@
       $('[data-wl-claimed-handle]').textContent = handle;
       $('[data-wl-claimed-note]').textContent = current.handle_applied
         ? "It's on your BookNStyle profile. Share it with your clients."
-        : HOLD_NOTE;
+        : current.region === 'outside_ny' && !isLive()
+          ? `${LATER_STATE_NOTE} ${HOLD_SIGNUP}`
+          : HOLD_NOTE;
       view.hidden = false;
       linkForm.hidden = true;
       $('[data-wl-change-link]').hidden = !owner || current.handle_applied;
@@ -1279,8 +1335,9 @@
     };
   }
 
-  function saveStory() {
-    const a = h('a', { href: storyUrl, download: 'booknstyle-story.png' });
+  function saveStory() { download(storyUrl, 'booknstyle-story.png'); }
+  function download(href, name) {
+    const a = h('a', { href, download: name });
     document.body.append(a);
     a.click();
     a.remove();
@@ -1288,9 +1345,27 @@
 
   // The Instagram, TikTok and Snapchat buttons. The link is copied first,
   // without waiting, so the share sheet still opens inside the tap.
-  async function shareToApp(app, url) {
+  async function shareToApp(app, url, proOnly = false) {
     const hint = APP_HINTS[app] || APP_HINTS.instagram;
     const copied = copy(url);
+    // Pros share the kit image they picked; everyone else the "I'm in." image.
+    const kitShot = proOnly ? kit.shots[kit.active] : null;
+    if (proOnly && kitShot && kitShot.blob) {
+      const file = new File([kitShot.blob], kitFileName(kitShot), { type: 'image/png' });
+      if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: 'BookNStyle' });
+          say(((await copied) ? 'Link copied. ' : '') + hint);
+          return;
+        } catch (err) {
+          if (err && err.name === 'AbortError') return;
+        }
+      }
+      const ok = await copied;
+      download(kitShot.url, kitFileName(kitShot));
+      say((ok ? 'Story image saved and link copied. ' : 'Story image saved. Copy your link above. ') + hint);
+      return;
+    }
     if (storyFile && storyCanShare) {
       try {
         await navigator.share({ files: [storyFile], title: 'BookNStyle' });
@@ -1307,6 +1382,383 @@
     } else {
       say((ok ? 'Link copied. ' : 'Copy your link above. ') + hint);
     }
+  }
+
+
+  // ---------- A pro's link for their clients ----------
+  // Their held page once they have a name (it says "@name is coming to
+  // BookNStyle" and collects their clients), or else their waitlist link
+  // for clients.
+  function clientLinkFor(d) {
+    if (d && d.reserved_handle) return 'https://' + LINK_HOST + d.reserved_handle;
+    const base = (d && d.share_url) || 'https://booknstyle.com/waitlist/';
+    return base + (base.includes('?') ? '&' : '?') + 'role=client';
+  }
+  const regularsText = (d) => `${SHARE_TEXT.pro}\n${clientLinkFor(d)}`;
+
+  // ---------- The Founding Pro Kit (R1): 1080 x 1920 story images drawn here ----------
+  // The same look and copy as the Pro Kit images (BookNStyle-Notes, Pro-Growth-
+  // Sprint, Pro Kit Images/template). In a headline, *words* are the champagne
+  // italic; " / " is the line break. Version 3 (launch day) shows only once
+  // BookNStyle is live. Copy rules: no prices, no "free", nothing not built.
+  const KIT_SOON_SUB = "Soon you can book me on BookNStyle. Join my list and you'll hear the day it opens. Until then, book me the way you always do.";
+  const KIT_LIVE_SUB = 'Tap the link, get the BookNStyle app and pick your time.';
+  const KIT_ROWS = ['See my open times and book on your own', 'A reminder before every appointment', 'Message me right in the app'];
+  const KIT_CRAFTS = {
+    general: { h: ['Booking me is / about to get *easier.*', 'Your next appointment, / *in a few taps.*', 'Booking me / just got *easier.*'], bio: '' },
+    barber: { h: ['Your next cut, / *on your schedule.*', 'Stay fresh. / *Book in a few taps.*', 'The chair is open. / *Book me here.*'],
+      rows: ['See my open times and book on your own', 'A reminder before every cut', 'Reschedule once on your own'], bio: 'Cuts, fades, lineups' },
+    braids: { h: ['Your next style, / *booked with ease.*', 'Installs and retwists, / *in a few taps.*', 'Braids or locs? / *Book me here.*'],
+      rows: ['Book long appointments on your own', 'My deposit and cancel policy, up front', 'A reminder before every appointment'], bio: 'Braids, locs, retwists' },
+    nails: { h: ['Fill day, / *made simple.*', 'Your next set, / *a few taps away.*', 'New set? / *Book me here.*'],
+      rows: ['Pick your time and book on your own', 'A reminder before every fill', 'Message me right in the app'], bio: 'Nails and nail art' },
+    lashes: { h: ['Your fills, / *right on schedule.*', 'Lashes and brows, / *in a few taps.*', 'Fill time? / *Book your spot.*'],
+      rows: ['Book your fill on your own', 'A reminder before every appointment', 'Reschedule once on your own'], bio: 'Lashes and brows' },
+    makeup: { h: ['Your next glam, / *beautifully booked.*', 'Event coming up? / *Hold your date.*', 'Glam on the calendar. / *Book me here.*'],
+      rows: ['Hold your date with a deposit', 'A reminder before your appointment', 'Message me right in the app'], bio: 'Glam, bridal, editorial' },
+    skin: { h: ['Your skin routine, / *on schedule.*', 'Your next facial, / *a few taps away.*', 'Skin day? / *Book me here.*'],
+      rows: ['Book your facial on your own', 'Fill out my intake form in the app', 'A reminder before every appointment'], bio: 'Facials and skincare' },
+    massage: { h: ['Your next session, / *simply booked.*', 'Your regular session, / *a few taps away.*', 'Time to reset? / *Book your session.*'],
+      rows: ['Book your session on your own', 'A reminder before every session', 'Message me right in the app'], bio: '' },
+    tattoo: { h: ['Your next piece / *starts here.*', 'Consults and sessions, / *in one place.*', 'Books are open. / *Claim your spot.*'],
+      rows: ['Book consults and sessions on your own', 'Deposits handled right in the app', 'Message me right in the app'], bio: 'Custom, fine line, traditional' },
+  };
+  // The waitlist's specialty -> the kit's craft.
+  const CRAFT_OF = {
+    barber: 'barber', hairstylist: 'general', braider: 'braids', loctician: 'braids', nail_tech: 'nails', lash_tech: 'lashes',
+    brow_artist: 'lashes', esthetician: 'skin', makeup_artist: 'makeup', massage_therapist: 'massage', tattoo_artist: 'tattoo', other: 'general',
+  };
+  const KIT_NAMES = ['coming-soon', 'how-to-book', 'launch-day'];
+  const KIT_LABELS = ['Coming soon', 'How to book', 'Launch day'];
+  const bioLine = (craft, live) => {
+    const prefix = (KIT_CRAFTS[craft] || {}).bio;
+    const line = live ? 'Book me on BookNStyle. Tap the link below.' : 'Booking on BookNStyle soon. Join my list at the link below.';
+    return prefix ? `${prefix} | ${line}` : line;
+  };
+  const kitFileName = (shot) => `booknstyle-${shot.name}-${KIT_NAMES[shot.v - 1]}.png`;
+  // The 4-point star used on the website, 24 units across.
+  const SPARK_PATH = 'M12 0c.6 6.2 5.8 11.4 12 12-6.2.6-11.4 5.8-12 12-.6-6.2-5.8-11.4-12-12 6.2-.6 11.4-5.8 12-12z';
+
+  async function drawKit(craftId, v, name, live) {
+    const W = 1080;
+    const H = 1920;
+    const craft = KIT_CRAFTS[craftId] || KIT_CRAFTS.general;
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    const c = canvas.getContext('2d');
+    try {
+      await Promise.all([
+        document.fonts.load('400 120px "Bodoni Moda"'), document.fonts.load('italic 400 120px "Bodoni Moda"'),
+        document.fonts.load('500 86px "Bodoni Moda"'), document.fonts.load('600 26px "Inter"'),
+        document.fonts.load('500 35px "Inter"'), document.fonts.load('400 38px "Inter"'),
+      ]);
+    } catch { /* system fonts */ }
+    const SERIF = '"Bodoni Moda", "Bodoni 72", Didot, Georgia, serif';
+    const SANS = 'Inter, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+    const CHAMP_L = '#DFB990';
+    const TEXT_3 = 'rgba(245, 244, 238, .56)';
+    const rounded = (x, y, w, hh, r) => {
+      c.beginPath();
+      c.moveTo(x + r, y);
+      c.arcTo(x + w, y, x + w, y + hh, r);
+      c.arcTo(x + w, y + hh, x, y + hh, r);
+      c.arcTo(x, y + hh, x, y, r);
+      c.arcTo(x, y, x + w, y, r);
+      c.closePath();
+    };
+    const goldFill = (x0, x1, y) => {
+      const g = c.createLinearGradient(x0, y, x1, y);
+      g.addColorStop(0, '#F0D3AE'); g.addColorStop(0.35, '#DFB990'); g.addColorStop(0.7, '#C8956A'); g.addColorStop(1, '#E7C59D');
+      return g;
+    };
+    // Letter-spaced line, centered on cx (canvas letterSpacing isn't in every browser yet).
+    const tracked = (text, cx, y, track) => {
+      const chars = Array.from(text);
+      const widths = chars.map((ch) => c.measureText(ch).width);
+      const total = widths.reduce((a, b) => a + b, 0) + track * (chars.length - 1);
+      let x = cx - total / 2;
+      c.textAlign = 'left';
+      chars.forEach((ch, i) => { c.fillText(ch, x, y); x += widths[i] + track; });
+      c.textAlign = 'center';
+      return total;
+    };
+    const wrap = (text, maxW) => {
+      const out = [];
+      let line = '';
+      text.split(' ').forEach((word) => {
+        const next = line ? line + ' ' + word : word;
+        if (c.measureText(next).width > maxW && line) { out.push(line); line = word; } else line = next;
+      });
+      if (line) out.push(line);
+      return out;
+    };
+
+    // Background: the site's navy with champagne glows, and a thin champagne frame.
+    const bg = c.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#16182B'); bg.addColorStop(0.38, '#12142A'); bg.addColorStop(1, '#0C0D17');
+    c.fillStyle = bg;
+    c.fillRect(0, 0, W, H);
+    const glow = (x, y, r, a) => {
+      const g = c.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, `rgba(200, 149, 106, ${a})`);
+      g.addColorStop(1, 'rgba(200, 149, 106, 0)');
+      c.fillStyle = g;
+      c.fillRect(0, 0, W, H);
+    };
+    glow(W / 2, 288, 740, 0.2);
+    glow(86, 1843, 820, 0.08);
+    c.strokeStyle = 'rgba(223, 185, 144, .30)';
+    c.lineWidth = 1.5;
+    rounded(44, 44, W - 88, H - 88, 44);
+    c.stroke();
+    c.textBaseline = 'middle';
+    c.textAlign = 'center';
+
+    // Logo: the B mark in its halo rings, the wordmark and a champagne rule.
+    const mx = W / 2;
+    const my = 350;
+    const halo = c.createRadialGradient(mx, my, 0, mx, my, 178);
+    halo.addColorStop(0, 'rgba(200, 149, 106, .26)'); halo.addColorStop(0.5, 'rgba(58, 46, 34, .14)'); halo.addColorStop(0.76, 'rgba(10, 11, 17, 0)');
+    c.fillStyle = halo;
+    c.fillRect(mx - 180, my - 180, 360, 360);
+    [[118, 0.08], [92, 0.16]].forEach(([r, a]) => { c.strokeStyle = `rgba(223, 185, 144, ${a})`; c.beginPath(); c.arc(mx, my, r, 0, Math.PI * 2); c.stroke(); });
+    try {
+      const mark = await loadImage('../assets/mark.webp');
+      const mw = 112;
+      const mh = mw * (mark.naturalHeight / mark.naturalWidth);
+      c.drawImage(mark, mx - mw / 2, my - mh / 2, mw, mh);
+    } catch { /* no mark */ }
+    c.fillStyle = '#F5F4EE';
+    c.font = `600 25px ${SANS}`;
+    tracked('BOOKNSTYLE', mx + 5, 474, 10.5);
+    const rule = c.createLinearGradient(mx - 75, 0, mx + 75, 0);
+    rule.addColorStop(0, 'rgba(200,149,106,0)'); rule.addColorStop(0.5, '#C8956A'); rule.addColorStop(1, 'rgba(200,149,106,0)');
+    c.fillStyle = rule;
+    c.fillRect(mx - 75, 512, 150, 1.5);
+
+    // Foot line, at the bottom of the safe area (clear of Instagram's reply bar).
+    c.fillStyle = TEXT_3;
+    c.font = `600 21px ${SANS}`;
+    tracked((live ? 'Now on iPhone and Android' : 'Launching soon across the US').toUpperCase(), mx + 3, 1719, 6.3);
+
+    // The headline: two lines, shrunk until the wider one fits 800px.
+    const lines = craft.h[v - 1].split(' / ').map((line) => line.split(/(\*[^*]+\*)/).filter(Boolean)
+      .map((part) => (part.startsWith('*') ? { t: part.slice(1, -1), em: true } : { t: part, em: false })));
+    let fs = 120;
+    const lineWidth = (segs) => segs.reduce((w, sg) => { c.font = `${sg.em ? 'italic ' : ''}400 ${fs}px ${SERIF}`; return w + c.measureText(sg.t).width; }, 0);
+    while (Math.max(...lines.map(lineWidth)) > 800 && fs > 64) fs -= 2;
+    const lh = fs * 1.06;
+
+    // The sub line (versions 1 and 3) or three rows (version 2).
+    c.font = `400 38px ${SANS}`;
+    const subLines = v === 2 ? [] : wrap(live ? KIT_LIVE_SUB : KIT_SOON_SUB, 820);
+    const rows = v === 2 ? (craft.rows || KIT_ROWS) : [];
+    const middleH = v === 2 ? 52 + rows.length * 99.5 : 40 + subLines.length * 57;
+    const cardH = 285;
+    const total = 26 + 44 + lh * 2 + middleH + 60 + cardH + 30 + 36;
+    let y = 515 + Math.max(0, (1679 - 515 - total) / 2);
+
+    // Eyebrow with two short rules.
+    c.fillStyle = CHAMP_L;
+    c.font = `600 26px ${SANS}`;
+    const eyebrow = (v === 2 ? 'Booking me, made easy' : live ? 'Now booking' : 'Coming soon').toUpperCase();
+    const ew = tracked(eyebrow, mx + 3, y + 13, 6.76);
+    c.globalAlpha = 0.55;
+    c.fillRect(mx - ew / 2 - 22 - 54, y + 12, 54, 1.5);
+    c.fillRect(mx + ew / 2 + 22, y + 12, 54, 1.5);
+    c.globalAlpha = 1;
+    y += 26 + 44;
+
+    lines.forEach((segs, i) => {
+      const lw = lineWidth(segs);
+      let x = mx - lw / 2;
+      const cy = y + lh * i + lh / 2;
+      c.textAlign = 'left';
+      segs.forEach((sg) => {
+        c.font = `${sg.em ? 'italic ' : ''}400 ${fs}px ${SERIF}`;
+        const w = c.measureText(sg.t).width;
+        c.fillStyle = sg.em ? goldFill(x, x + w, cy) : '#FAFAF7';
+        c.fillText(sg.t, x, cy);
+        x += w;
+      });
+      c.textAlign = 'center';
+    });
+    y += lh * 2;
+
+    if (v === 2) {
+      y += 52;
+      const left = (W - 820) / 2;
+      c.fillStyle = 'rgba(245, 244, 238, .10)';
+      c.fillRect(left, y, 820, 1.5);
+      const spark = new Path2D(SPARK_PATH);
+      rows.forEach((row) => {
+        const cy = y + 99.5 / 2;
+        c.save();
+        c.translate(left + 4, cy - 15);
+        c.scale(30 / 24, 30 / 24);
+        c.fillStyle = CHAMP_L;
+        c.fill(spark);
+        c.restore();
+        c.fillStyle = '#F5F4EE';
+        c.font = `500 35px ${SANS}`;
+        c.textAlign = 'left';
+        c.fillText(row, left + 4 + 30 + 26, cy);
+        c.textAlign = 'center';
+        y += 99.5;
+        c.fillStyle = 'rgba(245, 244, 238, .10)';
+        c.fillRect(left, y - 1.5, 820, 1.5);
+      });
+    } else {
+      y += 40;
+      c.fillStyle = 'rgba(245, 244, 238, .78)';
+      c.font = `400 38px ${SANS}`;
+      subLines.forEach((line) => { c.fillText(line, mx, y + 57 / 2); y += 57; });
+    }
+
+    // The link card: where the pro drops Instagram's Link sticker.
+    y += 60;
+    const cx0 = (W - 860) / 2;
+    c.save();
+    c.shadowColor = 'rgba(0, 0, 0, .55)';
+    c.shadowBlur = 60;
+    c.shadowOffsetY = 30;
+    const cardBg = c.createLinearGradient(0, y, 0, y + cardH);
+    cardBg.addColorStop(0, 'rgba(29, 32, 56, .92)'); cardBg.addColorStop(1, 'rgba(22, 24, 43, .96)');
+    c.fillStyle = cardBg;
+    rounded(cx0, y, 860, cardH, 38);
+    c.fill();
+    c.restore();
+    c.strokeStyle = 'rgba(223, 185, 144, .30)';
+    c.lineWidth = 1.5;
+    rounded(cx0, y, 860, cardH, 38);
+    c.stroke();
+    c.fillStyle = CHAMP_L;
+    c.font = `600 23px ${SANS}`;
+    tracked((live ? 'Book with me' : 'Join my list').toUpperCase(), mx + 3, y + 44 + 11, 6);
+    c.fillStyle = TEXT_3;
+    c.font = `500 32px ${SANS}`;
+    c.fillText('app.booknstyle.com/book/', mx, y + 44 + 23 + 26 + 19);
+    // The name, large in champagne Bodoni (hyphens in Inter: Bodoni's is a hairline).
+    const parts = name.split(/(-)/).filter(Boolean);
+    let ns = 86;
+    const nameW = () => parts.reduce((w, part) => { c.font = part === '-' ? `500 ${ns}px ${SANS}` : `500 ${ns}px ${SERIF}`; return w + c.measureText(part).width; }, 0);
+    while (nameW() > 780 && ns > 34) ns -= 2;
+    const nw = nameW();
+    let nx = mx - nw / 2;
+    const ny = y + 44 + 23 + 26 + 38 + 4 + 52;
+    c.textAlign = 'left';
+    const nameGold = goldFill(nx, nx + nw, ny);
+    parts.forEach((part) => {
+      c.font = part === '-' ? `500 ${ns}px ${SANS}` : `500 ${ns}px ${SERIF}`;
+      c.fillStyle = nameGold;
+      c.fillText(part, nx, ny);
+      nx += c.measureText(part).width;
+    });
+    c.textAlign = 'center';
+    y += cardH + 30;
+    c.fillStyle = TEXT_3;
+    c.font = `500 28px ${SANS}`;
+    c.fillText(live ? 'Tap the link to book' : 'Tap the link to join my list', mx, y + 18);
+
+    return new Promise((resolve) => canvas.toBlob((b) => resolve(b), 'image/png'));
+  }
+
+  // The kit on screen: one thumbnail per version, the chosen one saved or shared.
+  const kit = { craft: '', name: '', live: false, shots: [], active: 0, seq: 0 };
+  const kitStatus = $('[data-wl-kit-status]');
+  let kitTimer = 0;
+  const kitSay = (msg) => { kitStatus.textContent = msg; clearTimeout(kitTimer); kitTimer = setTimeout(() => { kitStatus.textContent = ''; }, 6000); };
+  function paintKitShots() {
+    const box = $('[data-wl-kit-shots]');
+    box.style.setProperty('--n', String(kit.shots.length));
+    box.replaceChildren(...kit.shots.map((shot, i) => {
+      const pic = shot.url ? h('img', { src: shot.url, alt: '', width: '108', height: '192' }) : h('span', { class: 'wl-kit__ph', 'aria-hidden': 'true' });
+      const btn = h('button', { class: 'wl-kit__shot', type: 'button', 'aria-pressed': String(i === kit.active), 'aria-label': `${KIT_LABELS[shot.v - 1]} story image` }, [pic, h('span', { text: KIT_LABELS[shot.v - 1] })]);
+      btn.addEventListener('click', () => { kit.active = i; paintKitShots(); });
+      return btn;
+    }));
+    const canShare = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [new File([''], 'x.png', { type: 'image/png' })] }));
+    $('[data-wl-kit-save-label]').textContent = canShare ? 'Share image' : 'Save image';
+  }
+  async function drawKitShots() {
+    const mySeq = ++kit.seq;
+    const versions = kit.live ? [3] : [1, 2];
+    kit.shots.forEach((shot) => { if (shot.url) URL.revokeObjectURL(shot.url); });
+    kit.shots = versions.map((v) => ({ v, name: kit.name, blob: null, url: '' }));
+    kit.active = 0;
+    paintKitShots();
+    for (const shot of kit.shots) {
+      let blob = null;
+      try { blob = await drawKit(kit.craft, shot.v, kit.name, kit.live); } catch { blob = null; }
+      if (mySeq !== kit.seq) return;
+      if (blob) { shot.blob = blob; shot.url = URL.createObjectURL(blob); }
+      paintKitShots();
+    }
+  }
+  function renderKit(isPro) {
+    const panel = $('[data-wl-kit]');
+    panel.hidden = !isPro;
+    if (!isPro) return;
+    const handle = current.reserved_handle || '';
+    $('[data-wl-kit-body]').hidden = !handle;
+    $('[data-wl-kit-nolink]').hidden = !!handle;
+    if (!handle) { kit.seq += 1; kit.name = ''; return; }
+    const select = $('[data-wl-kit-craft]');
+    if (!kit.craft) kit.craft = CRAFT_OF[store.get(KEYS.craft) || ''] || 'general';
+    select.value = kit.craft;
+    const live = isLive();
+    if (handle !== kit.name || live !== kit.live || !kit.shots.length) {
+      kit.name = handle;
+      kit.live = live;
+      drawKitShots();
+    }
+  }
+  $('[data-wl-kit-craft]').addEventListener('change', (e) => { kit.craft = e.target.value; if (kit.name) drawKitShots(); });
+  $('[data-wl-kit-save]').addEventListener('click', async () => {
+    const shot = kit.shots[kit.active];
+    if (!shot || !shot.blob) { kitSay('Your image is still being drawn. Try again in a moment.'); return; }
+    const file = new File([shot.blob], kitFileName(shot), { type: 'image/png' });
+    if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: 'BookNStyle' }); return; } catch (err) { if (err && err.name === 'AbortError') return; }
+    }
+    download(shot.url, kitFileName(shot));
+    const copied = await copyText(clientLinkFor(current));
+    kitSay(copied ? 'Image saved and link copied. Add your link with the Link sticker on the gold box.' : 'Image saved. Add your link with the Link sticker on the gold box.');
+  });
+  $('[data-wl-kit-text]').addEventListener('click', async () => {
+    const text = regularsText(current);
+    kitSay((await copyText(text)) ? 'Text copied. Paste it to your regulars.' : text);
+  });
+  $('[data-wl-kit-bio]').addEventListener('click', async () => {
+    const line = bioLine(kit.craft, isLive());
+    kitSay((await copyText(line)) ? 'Bio line copied. Put your link in the link field.' : line);
+  });
+
+  // ---------- Invite another pro (R5): a link, a share and a count, never names ----------
+  const proInviteLink = (d) => {
+    const code = String((d && d.referral_code) || '').toUpperCase();
+    if (!CODE.test(code)) return 'https://booknstyle.com/pro';
+    return d.share_url + (d.share_url.includes('?') ? '&' : '?') + 'role=pro&utm_campaign=pro_invite';
+  };
+  function renderProInvite(isPro) {
+    const panel = $('[data-wl-proinvite]');
+    panel.hidden = !isPro;
+    if (!isPro) return;
+    const link = proInviteLink(current);
+    $('[data-wl-pi-link]').value = link.replace(/^https?:\/\//, '');
+    const status = $('[data-wl-pi-status]');
+    $('[data-wl-pi-copy]').onclick = async () => { status.textContent = (await copyText(link)) ? 'Link copied.' : 'Press and hold the link to copy it.'; };
+    const share = $('[data-wl-pi-share]');
+    const data = { title: 'BookNStyle', text: PRO_INVITE_TEXT, url: link };
+    share.hidden = !(navigator.share && (!navigator.canShare || navigator.canShare(data)));
+    share.onclick = async () => { try { await navigator.share(data); } catch { /* closed */ } };
+    // Everyone who joined with this pro's code. Their code now travels only
+    // on this invite (their clients get the held page), hence "your invite".
+    const n = current.owner === true && Number.isInteger(current.referral_count) ? current.referral_count : null;
+    const count = $('[data-wl-pi-count]');
+    count.hidden = n === null;
+    count.textContent = n === null ? '' : `Joined from your invite: ${n}`;
   }
 
   // ---------- Coming back: this browser's saved key ----------
@@ -1387,6 +1839,7 @@
     return { ok: true, status: 200, data: mockDetail({ role, referral_count: 0, founding_pro: role !== 'client', founding_member: role !== 'pro', reserved_handle: role === 'client' ? null : body.reserved_handle, nominations: body.nominations || [], region: body.outside_ny ? 'outside_ny' : 'ny', city: body.city, manage_token: 'mock-key' }) };
   }
   if (IS_LOCAL) window.__wlDrawStory = (d, live) => drawStory(mockDetail(d || {}), !!live);
+  if (IS_LOCAL) window.__wlDrawKit = (craft, v, name, live) => drawKit(craft, v, name, !!live);
   if (previewing) {
     const role = ['client', 'both'].includes(params.get('role')) ? params.get('role') : 'pro';
     const outside = params.get('outside') === '1';

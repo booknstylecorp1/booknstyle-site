@@ -17,29 +17,30 @@
   <meta property="og:url" content="https://booknstyle.com/">
   <meta property="og:title" content="BookNStyle | Book personal care pros near you">
   <meta property="og:description" content="Discover, book and message barbers, stylists, nail and lash techs, makeup artists, estheticians, massage therapists and tattoo artists, all in one app.">
-  <meta property="og:image" content="https://booknstyle.com/assets/og.png">
+  <meta property="og:image" content="https://booknstyle.com/assets/og.png?v=20261031">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="BookNStyle logo with the line: Book the beauty pros near you.">
+  <meta property="og:image:alt" content="BookNStyle logo with the line: Book the beauty pros near you. Launching soon across the US.">
   <meta property="og:locale" content="en_US">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="BookNStyle | Book personal care pros near you">
   <meta name="twitter:description" content="Discover, book and message beauty and personal care pros near you, all in one app.">
-  <meta name="twitter:image" content="https://booknstyle.com/assets/og.png">
-  <meta name="twitter:image:alt" content="BookNStyle logo with the line: Book the beauty pros near you.">
+  <meta name="twitter:image" content="https://booknstyle.com/assets/og.png?v=20261031">
+  <meta name="twitter:image:alt" content="BookNStyle logo with the line: Book the beauty pros near you. Launching soon across the US.">
 
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..500;1,6..96,400..500&amp;family=Inter:wght@400;500;600&amp;display=swap">
+  <!-- Fonts are hosted on this site (styles.css, section 0) and preloaded, so headlines never jump to Bodoni -->
+  <link rel="preload" href="assets/fonts/bodoni-moda.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/bodoni-moda-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" as="image" href="assets/mark.webp" type="image/webp">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20261031a">
   <!-- aud-client: a link with ?for=clients opens the client version of the top section, set here so the pro version never flashes first -->
   <script>document.documentElement.classList.add('js');try{if(/^clients?$/i.test(new URLSearchParams(location.search).get('for')||''))document.documentElement.classList.add('aud-client');}catch(e){}</script>
-  <script src="main.js" defer></script>
+  <script src="main.js?v=20261031a" defer></script>
 
   <script type="application/ld+json">
   {
@@ -139,7 +140,6 @@
           <li><a href="#clients">For clients</a></li>
           <li><a href="#how">How it works</a></li>
           <li><a href="#faq">FAQ</a></li>
-          <li data-soon-only><a href="waitlist/">Waitlist</a></li>
         </ul>
         <div class="nav-extra">
           <a class="btn btn--gold" href="waitlist/" data-soon-only>Join the waitlist</a>
@@ -181,7 +181,7 @@
           <span class="gr__word" aria-hidden="true"><span style="--i:0">B</span><span style="--i:1">O</span><span style="--i:2">O</span><span style="--i:3">K</span><span style="--i:4">N</span><span style="--i:5">S</span><span style="--i:6">T</span><span style="--i:7">Y</span><span style="--i:8">L</span><span style="--i:9">E</span></span>
         </div>
 
-        <p class="eyebrow hero__kicker intro" style="--d:1.15s" data-soon-only><span class="eyebrow__rule"></span>Launching soon in New York<span class="eyebrow__rule"></span></p>
+        <p class="eyebrow hero__kicker intro" style="--d:1.15s" data-soon-only><span class="eyebrow__rule"></span>Launching soon across the US<span class="eyebrow__rule"></span></p>
         <p class="eyebrow hero__kicker intro" style="--d:1.15s" data-live-only hidden><span class="eyebrow__rule"></span>Now on iPhone and Android<span class="eyebrow__rule"></span></p>
 
         <!-- Pros first. Everything marked data-aud="client" shows instead of data-aud="pro" when html has
@@ -306,20 +306,28 @@
         <div class="chapter">
           <div class="chapter__head">
             <p class="eyebrow reveal"><span class="eyebrow__num">01</span><span class="eyebrow__rule"></span>For pros</p>
-            <h2 class="title reveal" id="pros-title" aria-describedby="fees-note" style="--d:.06s">Keep 100% of <em>your fees</em><sup><a href="#fees-note" aria-label="Fee note">*</a></sup></h2>
-            <p class="lead reveal" style="--d:.12s">Your business, your rules. BookNStyle takes no commission on your bookings, and you set the policies, deposits and hours that work for you.</p>
-            <!-- Required with the headline above: keep this footnote next to it, always visible. -->
-            <p class="footnote" id="fees-note">*Card payments have Stripe processing fees; cash payments are 100% yours.</p>
-            <ul class="pillars" role="list">
-              <li class="pillar reveal"><strong>Zero commission</strong><span>No cut of your bookings.</span></li>
-              <li class="pillar reveal" style="--d:.06s"><strong>Payouts to your bank</strong><span>Automatic, through Stripe.</span></li>
-              <li class="pillar reveal" style="--d:.12s"><strong>Cash-only option</strong><span>Collect in person, keep every dollar.</span></li>
-            </ul>
-            <a class="claim reveal" href="waitlist/?role=pro" data-soon-only>
-              <span class="claim__label">Claim it before launch</span>
-              <span class="claim__url"><svg aria-hidden="true"><use href="#i-link"/></svg>app.booknstyle.com/book/<strong>yourname</strong><span class="claim__caret" aria-hidden="true"></span></span>
-              <span class="claim__go" aria-hidden="true"><svg><use href="#i-arrow"/></svg></span>
-            </a>
+            <h2 class="title reveal" id="pros-title" style="--d:.06s">Your fees stay <em>yours.</em></h2>
+            <!-- Replaces "Keep 100% of your fees*" and its footnote: the processing note now sits in the line itself. -->
+            <p class="lead reveal" style="--d:.12s">No commission on your services. Card payments carry standard processing; cash is all yours.</p>
+            <!-- The one named pro offer (R3), word for word wherever it appears: here, the waitlist, emails, the kit and replies.
+                 No prices, no "free". Soon-only: the hold is a pre-launch promise. -->
+            <div class="offer reveal" style="--d:.16s" data-soon-only>
+              <h3 class="offer__title" id="offer-title">Your <em>Founding Pro Link</em></h3>
+              <span class="offer__rule" aria-hidden="true"></span>
+              <ul class="offer__list" role="list" aria-labelledby="offer-title">
+                <li><svg aria-hidden="true"><use href="#spark"/></svg>A booking link with your name.</li>
+                <li><svg aria-hidden="true"><use href="#spark"/></svg>Founding Pro badge on your profile.</li>
+                <li><svg aria-hidden="true"><use href="#spark"/></svg>No commission on your services.</li>
+                <li><svg aria-hidden="true"><use href="#spark"/></svg>Deposits and late-cancel policies you set.</li>
+                <li><svg aria-hidden="true"><use href="#spark"/></svg>Payouts sent to your bank automatically.</li>
+              </ul>
+              <p class="offer__hold">Held for you until 60 days after launch.</p>
+              <a class="claim" href="waitlist/?role=pro">
+                <span class="claim__label">Claim your link</span>
+                <span class="claim__url"><svg aria-hidden="true"><use href="#i-link"/></svg><span class="claim__host">app.booknstyle.com/book/</span><strong>yourname</strong><span class="claim__caret" aria-hidden="true"></span></span>
+                <span class="claim__go" aria-hidden="true"><svg><use href="#i-arrow"/></svg></span>
+              </a>
+            </div>
           </div>
           <div class="chapter__visual reveal">
             <div class="trio">
@@ -350,7 +358,7 @@
               <source media="(orientation: portrait) and (max-width: 1023px)" srcset="assets/video/p3-tall.webp" width="720" height="1280">
               <img class="film__poster" src="assets/video/p3-wide.webp" width="1280" height="720" alt="" loading="lazy" decoding="async">
             </picture>
-            <video class="film__video" muted playsinline loop preload="none" controls width="1280" height="720" data-start="6.2" aria-label="Short film: no commission on your services, and your clients stay yours." aria-describedby="film-p3-text">
+            <video class="film__video" muted playsinline loop preload="none" controls width="1280" height="720" data-start="0" aria-label="Short film: no commission on your services, and your clients stay yours." aria-describedby="film-p3-text">
               <source src="assets/video/p3-tall.mp4" type="video/mp4" media="(orientation: portrait) and (max-width: 1023px)">
               <source src="assets/video/p3-wide.mp4" type="video/mp4">
             </video>
@@ -365,20 +373,26 @@
               </button>
             </div>
           </div>
-          <figcaption class="sr-only" id="film-p3-text">Many booking apps take a cut of every booking. BookNStyle takes no commission on your services, only standard card processing, and cash payments stay yours. Your clients stay yours, and your booking link and QR code let them book you directly. Sample profiles shown.</figcaption>
+          <figcaption class="sr-only" id="film-p3-text">On some booking apps, a cut comes out when a new client books you. BookNStyle takes no commission on your services, only standard card processing, and cash payments stay yours. Your clients stay yours, and your booking link and QR code let them book you directly. Launching soon across the US. Pros, claim your link. Sample profiles shown.</figcaption>
         </figure>
 
         <ul class="rows rows--3" role="list" aria-label="Tools for pros">
           <li class="row reveal"><span class="row__icon" aria-hidden="true"><svg><use href="#i-qr"/></svg></span><h3>Booking link and QR code</h3><p>Share your link or print your QR code. Clients book you directly through it.</p></li>
           <li class="row reveal" style="--d:.06s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-percent"/></svg></span><h3>Deposits, flat or percentage</h3><p>Require a deposit to hold the slot, on the services you choose.</p></li>
           <li class="row reveal" style="--d:.12s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-shield"/></svg></span><h3>Your own policies</h3><p>Set your cancellation policy and how close to the appointment clients can reschedule.</p></li>
-          <li class="row reveal"><span class="row__icon" aria-hidden="true"><svg><use href="#i-clipboard"/></svg></span><h3>Custom intake forms</h3><p>Ask about allergies, skin details or treatment prep before the appointment.</p></li>
-          <li class="row reveal" style="--d:.06s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-image"/></svg></span><h3>Portfolio and service menu</h3><p>Show off your work next to the services you offer, all in one profile.</p></li>
-          <li class="row reveal" style="--d:.12s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-calendar"/></svg></span><h3>Hours and month calendar</h3><p>Set weekly business hours and see your bookings in a month view.</p></li>
-          <li class="row reveal"><span class="row__icon" aria-hidden="true"><svg><use href="#i-users"/></svg></span><h3>Client list</h3><p>Every client in one place, with their visits and last service.</p></li>
-          <li class="row reveal" style="--d:.06s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-list"/></svg></span><h3>Waitlist</h3><p>Clients can join your waitlist for popular times.</p></li>
+          <li class="row reveal"><span class="row__icon" aria-hidden="true"><svg><use href="#i-calendar"/></svg></span><h3>Hours and month calendar</h3><p>Set weekly business hours and see your bookings in a month view.</p></li>
+          <li class="row reveal" style="--d:.06s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-users"/></svg></span><h3>Client list</h3><p>Every client in one place, with their visits and last service.</p></li>
           <li class="row reveal" style="--d:.12s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-bell"/></svg></span><h3>Automatic reminders</h3><p>Reminders go out on their own and help reduce no-shows.</p></li>
         </ul>
+        <!-- The other three tools, one tap away, to keep the phone page short (R3) -->
+        <details class="tools-more">
+          <summary>All pro tools<svg aria-hidden="true"><use href="#i-plus"/></svg></summary>
+          <ul class="rows rows--3" role="list" aria-label="More tools for pros">
+            <li class="row"><span class="row__icon" aria-hidden="true"><svg><use href="#i-clipboard"/></svg></span><h3>Custom intake forms</h3><p>Ask about allergies, skin details or treatment prep before the appointment.</p></li>
+            <li class="row"><span class="row__icon" aria-hidden="true"><svg><use href="#i-image"/></svg></span><h3>Portfolio and services</h3><p>Show off your work next to the services you offer, all in one profile.</p></li>
+            <li class="row"><span class="row__icon" aria-hidden="true"><svg><use href="#i-list"/></svg></span><h3>Waitlist</h3><p>Clients can join your waitlist for popular times.</p></li>
+          </ul>
+        </details>
       </div>
     </section>
 
@@ -391,7 +405,7 @@
             <p class="eyebrow reveal"><span class="eyebrow__num">02</span><span class="eyebrow__rule"></span>For pros on other apps</p>
             <h2 class="title reveal" id="switch-title" style="--d:.06s">Switching booking apps? <em>Keep every client.</em></h2>
           </div>
-          <p class="lead reveal" style="--d:.12s">Bring your business over without giving up a cut of it. Set up in minutes, share your link, and your clients book you the same day.</p>
+          <p class="lead reveal" style="--d:.12s">Bring your business over without giving up a cut of it. Share your link, and your clients book you the same day.</p>
         </div>
 
         <!-- Film P6 "Your link held": same player as the films above, and soon-only for the same reason -->
@@ -401,7 +415,7 @@
               <source media="(orientation: portrait) and (max-width: 1023px)" srcset="assets/video/p6-tall.webp" width="720" height="1280">
               <img class="film__poster" src="assets/video/p6-wide.webp" width="1280" height="720" alt="" loading="lazy" decoding="async">
             </picture>
-            <video class="film__video" muted playsinline loop preload="none" controls width="1280" height="720" data-start="5" aria-label="Short film: thinking of switching booking apps? Claim your booking link now and it is held for you." aria-describedby="film-p6-text">
+            <video class="film__video" muted playsinline loop preload="none" controls width="1280" height="720" data-start="0" aria-label="Short film: thinking of switching booking apps? Claim your booking link now and it is held for you." aria-describedby="film-p6-text">
               <source src="assets/video/p6-tall.mp4" type="video/mp4" media="(orientation: portrait) and (max-width: 1023px)">
               <source src="assets/video/p6-wide.mp4" type="video/mp4">
             </video>
@@ -416,20 +430,18 @@
               </button>
             </div>
           </div>
-          <figcaption class="sr-only" id="film-p6-text">Thinking of switching? Before you move: one link with your name on it, no commission on your services, and payouts sent automatically to your bank, with only standard card processing. Your link is held for you until 60 days after launch. Share it your way: text it, post it, or show the QR code, and set your deposit and late cancel policies, shown before clients book. Reminders go to you and your client. Launching soon in New York. Pros, claim your booking link. Sample booking link shown.</figcaption>
+          <figcaption class="sr-only" id="film-p6-text">Thinking of switching? Before you move: one link with your name on it, no commission on your services, and payouts sent automatically to your bank, with only standard card processing. Your link is held for you until 60 days after launch. Share it your way: text it, post it, or show the QR code, and set your deposit and late cancel policies, shown before clients book. Reminders go to you and your client. Launching soon across the US. Pros, claim your booking link. Sample booking link shown.</figcaption>
         </figure>
 
-        <ul class="cards cards--3" role="list">
-          <li class="card reveal"><span class="card__n" aria-hidden="true">i.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-percent"/></svg></span><h3>No commission</h3><p>Not on your services, deposits, tips or cancellation fees.</p></li>
-          <li class="card reveal" style="--d:.06s"><span class="card__n" aria-hidden="true">ii.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-users"/></svg></span><h3>No new-client fees</h3><p>A client who finds you in the app is still your client.</p></li>
-          <li class="card reveal" style="--d:.12s"><span class="card__n" aria-hidden="true">iii.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-shield"/></svg></span><h3>Your rules</h3><p>Deposits, cancellation policy, reschedule cutoff and ID checks.</p></li>
-          <li class="card reveal"><span class="card__n" aria-hidden="true">iv.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-bell"/></svg></span><h3>Instant booking alerts</h3><p>Know the moment someone books you.</p></li>
-          <li class="card reveal" style="--d:.06s"><span class="card__n" aria-hidden="true">v.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-clipboard"/></svg></span><h3>Help with chargebacks</h3><p>We help you fight disputes with your booking records and the photos or notes you add.</p></li>
-          <li class="card reveal" style="--d:.12s"><span class="card__n" aria-hidden="true">vi.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-calendar"/></svg></span><h3>Set up in 10 minutes</h3><p>Add your services and hours, then share your link.</p></li>
+        <ul class="cards cards--4" role="list">
+          <li class="card reveal"><span class="card__n" aria-hidden="true">i.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-users"/></svg></span><h3>No new-client fees</h3><p>A client who finds you in the app is still your client.</p></li>
+          <li class="card reveal" style="--d:.06s"><span class="card__n" aria-hidden="true">ii.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-cash"/></svg></span><h3>Tips and fees too</h3><p>Nothing comes out of your deposits, tips or cancellation fees.</p></li>
+          <li class="card reveal" style="--d:.12s"><span class="card__n" aria-hidden="true">iii.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-clipboard"/></svg></span><h3>Help with chargebacks</h3><p>We help you fight disputes with your booking records and the photos or notes you add.</p></li>
+          <li class="card reveal" style="--d:.18s"><span class="card__n" aria-hidden="true">iv.</span><span class="card__icon" aria-hidden="true"><svg><use href="#i-calendar"/></svg></span><h3>Set up in minutes</h3><p>Add your services and hours, then share your link.</p></li>
         </ul>
         <div class="cta-row reveal">
           <a class="btn btn--gold" href="#download" data-live-only hidden>Get the app</a>
-          <a class="btn btn--gold" href="waitlist/?role=pro" data-soon-only>Join the waitlist as a pro<svg class="btn__arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn--gold" href="waitlist/?role=pro" data-soon-only>Claim your link<svg class="btn__arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
         </div>
       </div>
     </section>
@@ -458,10 +470,10 @@
                   <img class="phone__screen" src="assets/screens/reschedule.webp" width="700" height="1521" alt="Reschedule screen: a note that the first reschedule is free, a month calendar and open times to pick from." loading="lazy" decoding="async">
                 </div></div>
               </figure>
-              <div class="mock-chat" data-parallax="0.12" role="img" aria-label="Example chat: a client asks about parking near the studio, and her stylist says street parking is easy before noon.">
+              <div class="mock-chat" data-parallax="0.12" role="img" aria-label="Example chat: a client asks about parking near the studio, and her pro says street parking out front is easy before noon.">
                 <p class="mock-chat__head"><span class="mock-chat__av" aria-hidden="true">A</span>Amara Okafor</p>
                 <p class="mock-chat__b mock-chat__b--me">Perfect. Is there parking near the studio?</p>
-                <p class="mock-chat__b mock-chat__b--them">Street parking on Bedford Ave is easy before noon. See you Saturday!</p>
+                <p class="mock-chat__b mock-chat__b--them">Street parking out front is easy before noon. See you Saturday!</p>
               </div>
             </div>
             <p class="sample-note">Sample profiles shown</p>
@@ -477,7 +489,7 @@
               <source media="(orientation: portrait) and (max-width: 1023px)" srcset="assets/video/c1-tall.webp" width="720" height="1280">
               <img class="film__poster" src="assets/video/c1-wide.webp" width="1280" height="720" alt="" loading="lazy" decoding="async">
             </picture>
-            <video class="film__video" muted playsinline loop preload="none" controls width="1280" height="720" data-start="3.6" aria-label="Short film: find a pro near you, book in a few taps and get a reminder before every visit." aria-describedby="film-c1-text">
+            <video class="film__video" muted playsinline loop preload="none" controls width="1280" height="720" data-start="0" aria-label="Short film: find a pro near you, book in a few taps and get a reminder before every visit." aria-describedby="film-c1-text">
               <source src="assets/video/c1-tall.mp4" type="video/mp4" media="(orientation: portrait) and (max-width: 1023px)">
               <source src="assets/video/c1-wide.mp4" type="video/mp4">
             </video>
@@ -492,7 +504,7 @@
               </button>
             </div>
           </div>
-          <figcaption class="sr-only" id="film-c1-text">A search for a silk press shows three pros nearby, with ratings and distance. A pro's profile shows reviews from completed appointments, then open times, a booking confirmed for Saturday at 10:00 AM, and a reminder before the visit. Sample profiles shown.</figcaption>
+          <figcaption class="sr-only" id="film-c1-text">Your go-to pro is closer than you think. A search for a silk press finds them again in one tap. Book in a few taps from their open times, with no more texting back and forth, and get reminders 48 and 24 hours before the visit. Every pro, one app. Launching soon across the US. Clients, save your spot. Sample profiles shown.</figcaption>
         </figure>
 
         <ul class="rows rows--3" role="list">
@@ -570,9 +582,13 @@
         <div class="section-head section-head--split">
           <div>
             <p class="eyebrow reveal"><span class="eyebrow__num">05</span><span class="eyebrow__rule"></span>Trust and safety</p>
-            <h2 class="title reveal" id="trust-title" style="--d:.06s">Built with care, <em>by design.</em></h2>
+            <h2 class="title reveal" id="trust-title" style="--d:.06s">A real company, <em>on your side.</em></h2>
           </div>
           <p class="lead reveal" style="--d:.12s">Card payments through Stripe, report and block tools, and optional location and Face ID or fingerprint unlock.</p>
+        </div>
+        <div class="facts reveal">
+          <p class="facts__label">Plain facts</p>
+          <p>BookNStyle LLC, Great Neck, New York. Real support at <a href="mailto:support@booknstyle.com">support@booknstyle.com</a>.</p>
         </div>
         <ul class="cards cards--4" role="list">
           <li class="card reveal"><span class="card__icon" aria-hidden="true"><svg><use href="#i-lock"/></svg></span><h3>Payments by Stripe</h3><p>Card payments are processed by Stripe, so your card details never touch our servers.</p></li>
@@ -606,11 +622,15 @@
           </details>
           <details class="faq__item" name="faq">
             <summary>How do pros get paid?<span class="faq__icon" aria-hidden="true"><svg><use href="#i-plus"/></svg></span></summary>
-            <div class="faq__answer"><p>Card payments pay out automatically to the pro's bank account through Stripe. Cash payments are made in person and are 100% theirs. BookNStyle takes no commission on bookings.</p></div>
+            <div class="faq__answer"><p>Card payments pay out automatically to the pro's bank account through Stripe. Cash payments are made in person and are 100% theirs. BookNStyle takes no commission on their services.</p></div>
           </details>
           <details class="faq__item" name="faq">
             <summary>I'm a pro. How do my clients find me?<span class="faq__icon" aria-hidden="true"><svg><use href="#i-plus"/></svg></span></summary>
             <div class="faq__answer"><p>Clients can discover you by category, name or city. You can also share your personal booking link or QR code with the clients you already have, so they can book you directly.</p></div>
+          </details>
+          <details class="faq__item" name="faq">
+            <summary>Is BookNStyle in my state?<span class="faq__icon" aria-hidden="true"><svg><use href="#i-plus"/></svg></span></summary>
+            <div class="faq__answer"><p>BookNStyle is launching soon across the US. Join the waitlist and we'll email you the day BookNStyle opens where you are.</p></div>
           </details>
           <details class="faq__item" name="faq">
             <summary>Who can use BookNStyle?<span class="faq__icon" aria-hidden="true"><svg><use href="#i-plus"/></svg></span></summary>

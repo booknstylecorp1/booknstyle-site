@@ -84,6 +84,21 @@ const STORE_LINKS = {
     }
   }
 
+  /* ---------- Header over the light Trust section: solid near-black there, never a muddy grey ---------- */
+  if (header && 'IntersectionObserver' in window) {
+    const paper = Array.from(document.querySelectorAll('.section--paper'));
+    const under = new Set();
+    // Only the band the header covers (the top 76px) counts.
+    const band = () => `0px 0px -${Math.max(0, window.innerHeight - 76)}px 0px`;
+    if (paper.length) {
+      const pio = new IntersectionObserver((entries) => {
+        entries.forEach((e) => (e.isIntersecting ? under.add(e.target) : under.delete(e.target)));
+        header.classList.toggle('is-over-paper', under.size > 0);
+      }, { rootMargin: band() });
+      paper.forEach((el) => pio.observe(el));
+    }
+  }
+
   /* ---------- Parallax (transform only, on-screen elements only) ---------- */
   const parallaxEls = reduceMotion ? [] : Array.from(document.querySelectorAll('[data-parallax]'));
   const visible = new Set();
