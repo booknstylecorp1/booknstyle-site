@@ -10,7 +10,7 @@
    at the top of the card shows from step 2 on, with Join already filled.
    Every later step can be skipped (it fills grey); the bar never goes back.
    Server side: supabase/functions/waitlist-join and waitlist-info,
-   migrations 052 and 053.
+   migrations 052 and 053; waitlist-kit for the day 1 email's kit link (R2).
    Oct 30 2026 (luxury refinement): a pro's step 3 is "Tell your clients":
    the link they share is their own held page (app.booknstyle.com/book/name),
    with a text for their regulars, and the Founding Pro Kit (story images
@@ -25,6 +25,11 @@
   const FN = 'https://ebrxekhmlxlccuvcwiwb.supabase.co/functions/v1/';
   const JOIN_URL = FN + 'waitlist-join';
   const INFO_URL = FN + 'waitlist-info';
+  // The day 1 email's "Open your kit" link (R2): its signed key (?k=) is
+  // traded here for that pro's kit, read only. Same shape as
+  // KIT_KEY_PATTERN in supabase/functions/_shared/kitLink.ts.
+  const KIT_URL = FN + 'waitlist-kit';
+  const KIT_KEY = /^v1\.[0-9a-f]{32}\.\d{10}\.[A-Za-z0-9_-]{43}$/;
 
   // Friends (joined with a client's link) who make that client's first
   // booking fee free. The server has the final say
@@ -32,6 +37,7 @@
   // "milestone". Badges need no friends: every client is a Founding Member
   // and every pro who joins here is a Founding Pro.
   const MILESTONE = 3;
+  const goalOf = (d) => (d && Number.isInteger(d.milestone) && d.milestone > 0 ? d.milestone : MILESTONE);
   const MAX_NOMINATIONS = 3;
   const LINK_HOST = 'app.booknstyle.com/book/';
   const CHECK_DELAY_MS = 450;
@@ -44,27 +50,55 @@
   };
   // What a pro sends another pro (R5). No reward is promised: the free month
   // only works for plans billed on our website, not Apple.
-  const PRO_INVITE_TEXT = 'I just claimed my booking link on BookNStyle. Claim yours before someone takes your name:';
+  // Softer wording, owner-approved Nov 10 2026 (pro marketing plan, section
+  // 10.1 row 1). This branch has no launch switch for it; on launch day (the
+  // launch-web merge) it becomes:
+  //   "I'm taking bookings on BookNStyle now. Thought you might like it:"
+  const PRO_INVITE_TEXT = 'I just claimed my booking link on BookNStyle. Thought you might like it:';
+  // What a client (or a both with no link held) sends a pro from "Your link
+  // for pros": the softer ask_thought line from the pro marketing plan
+  // (section 7.1, before launch). The link opens the pro sign-up form, so it
+  // says "if you want it", never "to look over". Owner-approved Nov 10 2026;
+  // it ships with the calm pro heading (plan row 8).
+  const CLIENT_TO_PRO_TEXT = "Saw this and thought of you. Do you have a BookNStyle link yet? It's launching soon across the US, and I'd book you on it. Here's the link if you want it:";
   // Pros outside New York: New York opens on launch day, every other state soon
-  // after (state rules plan, Oct 30 2026), and their hold runs from their state's opening (R4).
+  // after (state rules plan, Oct 30 2026). Their hold is the same as everyone's,
+  // 60 days after launch, matching the Privacy Policy, welcome email and server (owner, Oct 31 2026; R4).
   const LATER_STATE_NOTE = 'Your state opens soon after launch. Your link stays held until 60 days after launch.';
   // "Let your pro know": the message a client sends each pro they named, with
   // their pro invite link (?ref=CODE&role=pro&utm_campaign=<id>) after it.
   // Each browser gets one of these at random and keeps it, so a client always
   // sees the same message. The id rides on the link, so the waitlist export's
   // utm_campaign column shows which message brought each pro in.
-  // Owner-approved wording, Oct 26 and 27 2026; ask_thought reworded and
-  // ask_nationwide added (an A/B test of the two lines) Oct 30 2026.
+  // Owner-approved wording, Oct 26 and 27 2026 (ask_thought reworded and
+  // ask_nationwide added Oct 30 2026). Softer questions, owner-approved Nov 10
+  // 2026 (pro marketing plan, section 7.1, Decision 3): each is a question
+  // that ends "Here's the link if you want it:", under NEW ids (the old
+  // ask_default ... ask_clients results stay apart, for a clean before and
+  // after). A browser that saved an old id gets a new message at random.
+  // They ship only together with the calm pro heading "Your name, when
+  // you're ready." (index.html, plan row 8).
+  // This branch has no launch switch for these texts. After launch (the
+  // launch-web merge) the same ids say:
+  //   ask_default_q:    "I just joined BookNStyle. Are you taking bookings there? I'd book you on it. Here's the link if you want it:"
+  //   ask_goto_q:       "You're my go-to, so I thought of you. Are you on BookNStyle? It's a booking app made for pros, with no commission on your services. Here's the link if you want it:"
+  //   ask_thought_q:    "Saw this and thought of you. Do you have a BookNStyle link yet? I'd book you on it. Here's the link if you want it:"
+  //   ask_nationwide_q: "Saw this and thought of you. BookNStyle is opening across the US. Are you on it yet? I'd book you there. Here's the link if you want it:"
+  //   ask_clients_q:    "I just joined BookNStyle. Would you ever take bookings there? I'd book you on it. Here's the link if you want it:"
   const ASK_TEXTS = [
-    { id: 'ask_default', text: "I just joined the BookNStyle waitlist. You should be on it, it's built for pros like you:" },
-    { id: 'ask_goto', text: "You're my go-to, so I put you on BookNStyle's list. It's a new booking app made for pros, no commission on your services. Grab your booking link before someone takes your name:" },
-    // Oct 30 2026, nationwide: "launching in NYC" became "launching soon across
-    // the US" (same utm id so its results keep adding up).
-    { id: 'ask_thought', text: "Saw this and thought of you. BookNStyle is launching soon across the US, and pros can claim their booking link now. I'd book you on it in a heartbeat:" },
-    { id: 'ask_nationwide', text: "Saw this and thought of you. BookNStyle is coming soon nationwide, and pros can claim their booking link now. I'd book you on it in a heartbeat:" },
-    { id: 'ask_clients', text: "Your clients are joining BookNStyle. I just did. Claim your booking link so we can book you there:" },
+    { id: 'ask_default_q', text: "I just joined the BookNStyle waitlist. Are you thinking about joining? I'd book you there. Here's the link if you want it:" },
+    { id: 'ask_goto_q', text: "You're my go-to, so I thought of you. Have you seen BookNStyle? It's a new booking app made for pros, with no commission on your services. Here's the link if you want it:" },
+    { id: 'ask_thought_q', text: "Saw this and thought of you. Do you have a BookNStyle link yet? It's launching soon across the US, and I'd book you on it. Here's the link if you want it:" },
+    { id: 'ask_nationwide_q', text: "Saw this and thought of you. BookNStyle is coming soon nationwide. Are you thinking about it? I'd book you there. Here's the link if you want it:" },
+    { id: 'ask_clients_q', text: "I just joined BookNStyle as a client. Would you ever take bookings there? I'd book you on it. Here's the link if you want it:" },
   ];
   const PRO_INVITE_FALLBACK = 'https://booknstyle.com/waitlist?role=pro&utm_source=client_invite';
+  // utm_campaign on the links for pros: a pro's or both's (the "Know a pro"
+  // box, or both's "Your link for pros"), and a client's "Your link for
+  // pros" in the share box. The export's
+  // utm_campaign column tells them apart from the "Message @handle" texts.
+  const PRO_INVITE_CAMPAIGN = 'pro_invite';
+  const CLIENT_PRO_LINK_CAMPAIGN = 'client_pro_link';
 
   // What each app button says after it shares the story image (or saves it,
   // where the browser can't share files) and copies the link. None of these
@@ -124,6 +158,94 @@
   // Form controls by name. (Not el('name'): that is the form's own name attribute.)
   const el = (n) => form.elements.namedItem(n);
 
+  // ---------- One-line boxes that wrap (Nov 10 2026) ----------
+  // The handle boxes (booking link, "@" handles) are textareas with
+  // class wl-oneline, so a long handle wraps and shows in full on a narrow
+  // or zoomed-in phone instead of scrolling out of sight. They act like a
+  // one-line input: Return submits the form, a line break never gets in.
+  // The link boxes (Your link, Your link for pros) show the link as text
+  // that breaks only after its dots, slashes, "?" and "&" (setLink).
+  // fitText sizes each box to its text: on typing, and whenever the box
+  // changes width (a turned phone, a zoom, a step coming into view). Done
+  // here rather than with CSS field-sizing, which doesn't re-measure in
+  // every Safari when the page width changes.
+  const WRAPS = '.wl-oneline';
+  function fitText(box) {
+    if (!box || !box.offsetParent) return;
+    box.style.height = 'auto';
+    box.style.height = box.scrollHeight + 'px';
+  }
+  const fitWidths = new WeakMap();
+  const fitWatch = window.ResizeObserver ? new ResizeObserver((entries) => entries.forEach((en) => {
+    const w = Math.round(en.contentRect.width);
+    if (fitWidths.get(en.target) === w) return;
+    fitWidths.set(en.target, w);
+    // Next frame: a height set inside this callback would make Safari report
+    // a ResizeObserver loop.
+    requestAnimationFrame(() => fitText(en.target));
+  })) : null;
+  // The gold "Message @handle" buttons: one line always. When the whole
+  // label doesn't fit its row (a zoomed-in phone, Split View, a long handle)
+  // it shows just "Message"; the handle is the card's title right above it.
+  // Measured against the row, never the button, so the switch can't loop.
+  let msgCanvas = null;
+  function fitMsg(row) {
+    const btn = row && row.querySelector('.wl-pro__msg');
+    if (!btn || !btn.offsetParent) return;
+    const long = btn.querySelector('.wl-pro__msg-long');
+    const c = getComputedStyle(btn);
+    msgCanvas = msgCanvas || document.createElement('canvas').getContext('2d');
+    msgCanvas.font = `${c.fontWeight} ${c.fontSize} ${c.fontFamily}`;
+    const text = long.textContent;
+    const svg = btn.querySelector('svg');
+    const iconW = svg && getComputedStyle(svg).display !== 'none' ? 18 + (parseFloat(c.columnGap) || 0) : 0;
+    const need = msgCanvas.measureText(text).width + text.length * (parseFloat(c.letterSpacing) || 0)
+      + parseFloat(c.paddingLeft) + parseFloat(c.paddingRight) + iconW + 6;
+    btn.classList.toggle('is-short', row.clientWidth < need);
+  }
+  // Each row is measured again whenever its width changes (a turned phone, a
+  // zoom, the card's layout settling), not only on a window resize.
+  const msgWidths = new WeakMap();
+  const msgWatch = window.ResizeObserver ? new ResizeObserver((entries) => entries.forEach((en) => {
+    const w = Math.round(en.contentRect.width);
+    if (msgWidths.get(en.target) === w) return;
+    msgWidths.set(en.target, w);
+    // Next frame, as for fitText: a change made inside this callback would
+    // make Safari report a ResizeObserver loop.
+    requestAnimationFrame(() => fitMsg(en.target));
+  })) : null;
+  let fitFrame = 0;
+  const fitAll = () => {
+    cancelAnimationFrame(fitFrame);
+    fitFrame = requestAnimationFrame(() => {
+      $$(WRAPS).forEach((box) => {
+        if (fitWatch && !fitWidths.has(box)) { fitWidths.set(box, -1); fitWatch.observe(box); }
+        fitText(box);
+      });
+      $$('.wl-pro__actions').forEach((row) => {
+        if (msgWatch && !msgWidths.has(row)) { msgWidths.set(row, -1); msgWatch.observe(row); }
+        fitMsg(row);
+      });
+    });
+  };
+  document.addEventListener('input', (e) => {
+    const box = e.target;
+    if (!box.matches || !box.matches('.wl-oneline')) return;
+    if (/[\r\n]/.test(box.value)) box.value = box.value.replace(/[\r\n]+/g, '');
+    fitText(box);
+  }, true);
+  document.addEventListener('keydown', (e) => {
+    const box = e.target;
+    if (e.key !== 'Enter' || e.isComposing || !box.matches || !box.matches('.wl-oneline')) return;
+    e.preventDefault();
+    const f = box.form;
+    if (!f) return;
+    if (f.requestSubmit) f.requestSubmit();
+    else { const b = f.querySelector('[type="submit"]'); if (b) b.click(); }
+  });
+  window.addEventListener('resize', fitAll);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll);
+
   // ---------- Steps ----------
   // Step 1 is the form, with the bar hidden. Steps 2 and 3 show parts of
   // the success view (each piece has a data-wl-slot); 'done' shows all of
@@ -173,10 +295,28 @@
   const refField = $('[data-wl-ref]');
   refField.value = (CODE.test(urlRef) && urlRef !== mine ? urlRef : (savedRef && CODE.test(savedRef) && savedRef !== mine ? savedRef : ''));
 
-  // A pro who opened a client's "Message your pro" link (?ref=CODE&role=pro):
-  // say why they're here. Before launch only (it talks about launch).
+  // A pro who opened a member's link for pros (?ref=CODE&role=pro). Say why
+  // they're here, and only what is true for that link. Before launch only (it
+  // talks about launch).
+  // - A client's "Message @handle" text (utm_campaign=ask_*): that client
+  //   wants to book this pro, as the page says by default.
+  // - A pro's or a both's link for pros (pro_invite): a pro sent them.
+  // - A client's "Your link for pros" (client_pro_link): it can go to any pro.
+  // - No campaign (the emails' links, or a link copied by hand from its box,
+  //   which leaves the tag off): anyone could have sent it.
+  // The "They'd like to book you" sentence stays plain text in the page (the
+  // launch-day wording table finds it there); it is taken out here.
   const proHook = $('[data-wl-pro-hook]');
   if (proHook && CODE.test(urlRef) && urlRef !== mine && (params.get('role') || '').toLowerCase() === 'pro' && !isLive()) {
+    const campaign = (params.get('utm_campaign') || '').toLowerCase();
+    if (!campaign.startsWith('ask_')) {
+      const who = $('[data-wl-pro-hook-who]');
+      who.textContent = campaign === PRO_INVITE_CAMPAIGN ? 'A pro you know sent you here.'
+        : campaign === CLIENT_PRO_LINK_CAMPAIGN ? 'A client sent you here.'
+        : 'Someone you know sent you here.';
+      const why = who.nextSibling;
+      if (why && why.nodeType === 3) why.nodeValue = why.nodeValue.replace("They'd like to book you on BookNStyle. ", '');
+    }
     proHook.hidden = false;
   }
 
@@ -296,7 +436,7 @@
       if (onChange) onChange(state);
     };
     input.addEventListener('input', () => { input.dataset.touched = '1'; update(); });
-    return { state, update, set(v) { input.value = v; update(); } };
+    return { state, update, set(v) { input.value = v; update(); fitText(input); } };
   }
 
   const handleInput = el('reserved_handle');
@@ -336,9 +476,11 @@
       h('option', { value: 'instagram', text: 'Instagram' }),
       h('option', { value: 'tiktok', text: 'TikTok' }),
     ]);
-    const input = h('input', {
-      type: 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', maxlength: '60',
-      placeholder: 'theirhandle', 'aria-label': "Your pro's handle",
+    // A one-line textarea (see "One-line boxes that wrap"): a long handle wraps and shows
+    // in full, even on a zoomed-in phone.
+    const input = h('textarea', {
+      class: 'wl-oneline', rows: '1', autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', maxlength: '60',
+      enterkeyhint: 'done', placeholder: 'handle', 'aria-label': "Your pro's handle", 'aria-multiline': 'false',
     });
     // "@" is shown in front already: drop a typed one.
     input.addEventListener('input', () => { if (input.value.startsWith('@')) input.value = input.value.replace(/^@+/, ''); });
@@ -350,23 +492,24 @@
         const list = row.parentElement;
         row.remove();
         list.dispatchEvent(new Event('wl-change'));
-        const last = $$('input', list).pop();
+        const last = $$('.wl-oneline', list).pop();
         if (last) last.focus();
       });
       box.append(remove);
     }
     return row;
   }
-  function nomList(list, addBtn, errId) {
-    const sync = () => { addBtn.hidden = $$('.wl-nom', list).length >= MAX_NOMINATIONS; };
+  function nomList(list, addBtn, errId, maxRows = () => MAX_NOMINATIONS) {
+    const sync = () => { addBtn.hidden = $$('.wl-nom', list).length >= maxRows(); };
     list.addEventListener('wl-change', sync);
     list.addEventListener('input', () => clearNomError(list, errId));
     addBtn.addEventListener('click', () => {
-      if ($$('.wl-nom', list).length >= MAX_NOMINATIONS) return;
+      if ($$('.wl-nom', list).length >= maxRows()) return;
       const row = nomRow(false);
       list.append(row);
       sync();
-      $('input', row).focus();
+      fitAll();
+      $('.wl-oneline', row).focus();
     });
     list.replaceChildren(nomRow(true));
     sync();
@@ -375,7 +518,7 @@
         const out = [];
         let bad = '';
         $$('.wl-nom', list).forEach((row) => {
-          const raw = $('input', row).value.trim();
+          const raw = $('.wl-oneline', row).value.trim();
           if (!raw) return;
           let platform = $('select', row).value;
           let handle = raw;
@@ -385,15 +528,16 @@
           if (!SOCIAL.test(handle)) { bad = bad || '@' + handle.slice(0, 30); return; }
           if (!out.some((n) => n.handle === handle)) out.push({ platform, handle });
         });
-        return { list: out.slice(0, MAX_NOMINATIONS), bad };
+        return { list: out.slice(0, maxRows()), bad };
       },
       reset() { list.replaceChildren(nomRow(true)); sync(); },
+      sync,
     };
   }
   function clearNomError(list, errId) {
     const msg = document.getElementById(errId);
     if (msg) { msg.textContent = ''; msg.hidden = true; }
-    $$('input', list).forEach((i) => i.removeAttribute('aria-invalid'));
+    $$('.wl-oneline', list).forEach((i) => i.removeAttribute('aria-invalid'));
   }
   // (The first form no longer asks "Who's your pro?": that is step 2, saved
   // with the late panel's update call below.)
@@ -619,6 +763,7 @@
     const target = $('.wl-sharebox').hasAttribute('data-wl-off') ? stepStatus : status;
     status.textContent = '';
     stepStatus.textContent = '';
+    $('[data-wl-pros-status]').textContent = '';
     target.textContent = msg;
     clearTimeout(statusTimer);
     statusTimer = setTimeout(() => { status.textContent = ''; stepStatus.textContent = ''; }, 6000);
@@ -640,6 +785,32 @@
       try { ok = document.execCommand('copy'); } catch {}
       if (!fallbackInput) input.value = shown;
       return ok;
+    }
+  }
+
+  // A link box: the read-only textarea (for screen readers, keyboard select
+  // and the old-style copy) is visually hidden; the link shows as text with a
+  // <wbr> after each dot, slash, "?", "&" and "ref=", so a narrow or zoomed-in phone
+  // breaks it there and never inside a word. A booking page's name after
+  // "book/" moves to the next line whole (it breaks only at its hyphens when
+  // longer than a line). Built from text nodes: the name is the person's own.
+  function setLink(box, text) {
+    box.value = text;
+    const show = box.parentElement.querySelector('[data-wl-link-show]');
+    if (!show) return;
+    show.textContent = '';
+    const book = text.match(/^(.*\/book\/)([^/?#]+)$/);
+    const head = book ? book[1] : text;
+    // (No lookbehind in the pattern: older iPhone Safari can't parse it.)
+    head.replace(/[./?&]|ref=/g, '$&\n').split('\n').forEach((part, i) => {
+      if (i) show.append(document.createElement('wbr'));
+      if (part) show.append(part);
+    });
+    if (book) {
+      const name = document.createElement('span');
+      name.className = 'wl-url__name';
+      name.textContent = book[2];
+      show.append(name);
     }
   }
 
@@ -666,7 +837,9 @@
   // a new sign-up can still name pros or claim a link in step 2.
   let memKey = null;
   const myKey = () => store.get(KEYS.key) || memKey;
-  const isOwner = () => !!(current && current.owner && myKey());
+  // A kit opened from the day 1 email (kit_only, see openKit) is read only,
+  // even in a browser that holds a key: that key may be someone else's.
+  const isOwner = () => !!(current && current.owner && !current.kit_only && myKey());
 
   function showSuccess(data, local = {}) {
     const role = data.role || local.role || 'client';
@@ -676,12 +849,13 @@
     const url = data.share_url || `https://booknstyle.com/waitlist/?ref=${encodeURIComponent(code)}`;
     current = { ...data, role, share_url: url, region: data.region || local.region || null, city: data.city || local.city || null };
 
-    if (CODE.test(code)) {
+    // A kit opened from the email keeps nothing in this browser.
+    if (CODE.test(code) && !data.kit_only) {
       store.set(KEYS.mine, code);
       store.del(KEYS.ref);
     }
     if (data.manage_token) { store.set(KEYS.key, data.manage_token); memKey = data.manage_token; }
-    if (data.owner && store.get(KEYS.key)) {
+    if (data.owner && !data.kit_only && store.get(KEYS.key)) {
       // Kept so a return visit shows this at once. No email, no key.
       const { manage_token: _drop, ...keep } = current;
       store.set(KEYS.state, JSON.stringify(keep));
@@ -702,7 +876,7 @@
       skipSaveTried = false;
     }
     $('[data-wl-eyebrow]').textContent = returning ? 'Welcome back' : "You're on the list";
-    let lead = local.fromStorage
+    let lead = local.fromStorage || data.kit_only
       ? "Here's your link and your progress."
       : returning
         ? (data.owner ? "You're already on the list. Here's your link and your progress." : "You're already on the list. Here's your share link.")
@@ -722,10 +896,23 @@
     // buttons always use the full link. A pro (not "both", who has the
     // friends reward) shares their own held page with their regulars; with
     // no link claimed yet, their waitlist link for clients.
+    // Two links (owner, Nov 10 2026): this first one is for friends (a
+    // pro's: for their clients), with the share buttons and the story image;
+    // the second is for pros (renderProsLink). Joins with either count the
+    // same on the server (052: any new sign-up with the ref code).
     const proOnly = role === 'pro';
     const shareUrl = proOnly ? clientLinkFor(current) : url;
-    $('[data-wl-link]').value = shareUrl.replace(/^https?:\/\//, '');
-    $('label[for="wl-link"]').textContent = proOnly && current.reserved_handle ? 'Your booking link' : 'Your link';
+    setLink($('[data-wl-link]'), shareUrl.replace(/^https?:\/\//, ''));
+    const who = proOnly ? 'clients' : 'friends';
+    $('[data-wl-link-label]').textContent = `Your link for ${who}`;
+    $('[data-wl-copy]').setAttribute('aria-label', `Copy your link for ${who}`);
+    $('[data-wl-share-list]').setAttribute('aria-label', `Share your link for ${who}`);
+    $('[data-wl-link-note]').textContent = proOnly
+      ? (current.reserved_handle && !current.handle_applied && !isLive()
+        ? 'Your booking page. Clients who join there hear from us the day they can book you.'
+        : 'Send it to your clients and regulars.')
+      : friendsNote();
+    renderProsLink(isClient);
     const text = proOnly ? SHARE_TEXT.pro : SHARE_TEXT.client;
     // X and Facebook have web share pages. (Facebook takes only the link; the
     // page's Open Graph tags give the picture and title.)
@@ -753,13 +940,16 @@
     // under way is dropped).
     if (!proOnly) prepareStory(); else { storySeq += 1; $('.wl-story').hidden = true; }
     renderKit(isPro);
-    renderProInvite(isPro);
+    // A "both" has their link for pros in the share box (renderProsLink),
+    // so "Know a pro" is for pros only: the same link is never shown twice.
+    renderProInvite(proOnly);
     $('[data-wl-reset]').hidden = !local.fromStorage;
 
     form.hidden = true;
     success.hidden = false;
     applyStep();
-    if (wasHidden && !local.fromStorage) {
+    // A kit from the email scrolls to the kit instead (openKit).
+    if (wasHidden && !local.fromStorage && !data.kit_only) {
       bringCardIntoView();
       $('[data-wl-done]').focus({ preventScroll: true });
     }
@@ -837,6 +1027,7 @@
     const nav = $('[data-wl-stepnav]');
     nav.hidden = !show;
     $('[data-wl-step-status]').hidden = !show;
+    fitAll(); // boxes that just came into view, or got a new link
     if (!show) return;
     const result = stepHasResult();
     $('[data-wl-back]').hidden = step !== 3;
@@ -851,7 +1042,7 @@
     if (to === 'done' && !seg[2]) seg[2] = 'skipped';
     step = to;
     // A message from the last step doesn't belong on this one.
-    $$('[data-wl-status], [data-wl-step-status]').forEach((n) => { n.textContent = ''; });
+    $$('[data-wl-status], [data-wl-step-status], [data-wl-pros-status]').forEach((n) => { n.textContent = ''; });
     applyStep();
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
       Array.from(success.children)
@@ -881,7 +1072,16 @@
     }
     goStep(step === 2 ? 3 : 'done');
   });
-  $('[data-wl-next]').addEventListener('click', () => goStep(step === 2 ? 3 : 'done'));
+  $('[data-wl-next]').addEventListener('click', async () => {
+    // Pros typed into "Add another pro" but not saved: Next saves them first
+    // and stays, so their cards show (once, as with Skip).
+    if (step === 2 && !skipSaveTried && !$('[data-wl-nominate-late]').hidden && lateNomsTyped()) {
+      skipSaveTried = true;
+      await saveLateNoms();
+      return;
+    }
+    goStep(step === 2 ? 3 : 'done');
+  });
   $('[data-wl-back]').addEventListener('click', () => goStep(2));
   // A copy or share on step 3 counts as done (and fills it champagne).
   success.addEventListener('click', (e) => {
@@ -1013,6 +1213,17 @@
       return ok;
     }
   }
+  // "@handle" that, on a very narrow card, breaks after a dot or an
+  // underscore rather than inside a word (a <wbr> after each).
+  function handleTitle(handle) {
+    const strong = document.createElement('strong');
+    // (No lookbehind in the pattern: older iPhone Safari can't parse it.)
+    ('@' + handle).replace(/[._]/g, '$&\n').split('\n').forEach((part, i) => {
+      if (i) strong.append(document.createElement('wbr'));
+      strong.append(part);
+    });
+    return strong;
+  }
   function proCard(n, msg) {
     const tiktok = n.platform === 'tiktok';
     const where = tiktok ? 'TikTok' : 'Instagram';
@@ -1021,8 +1232,8 @@
     // A plain link, not window.open: Instagram's in-app browser blocks
     // pop-ups. The copy runs in its click, with no preventDefault, so the
     // profile still opens.
-    const open = h('a', { class: 'btn btn--gold btn--sm wl-pro__msg', href: profile, target: '_blank', rel: 'noopener' }, [
-      icon('i-send'), h('span', { text: 'Message @' + n.handle }), h('span', { class: 'wl-sr', text: `, copies a message and opens their ${where} profile` }),
+    const open = h('a', { class: 'btn btn--gold btn--sm wl-pro__msg', href: profile, target: '_blank', rel: 'noopener', 'aria-label': `Message @${n.handle}, copies a message and opens their ${where} profile` }, [
+      icon('i-send'), h('span', { class: 'wl-pro__msg-long', text: 'Message @' + n.handle }), h('span', { class: 'wl-pro__msg-short', text: 'Message' }),
     ]);
     open.addEventListener('click', async () => {
       $$('.wl-pro__status', $('[data-wl-ask-list]')).forEach((s) => { s.textContent = ''; });
@@ -1039,35 +1250,59 @@
       actions.append(share);
     }
     return h('li', { class: 'wl-pro' }, [
-      h('span', { class: 'wl-pro__who' }, [h('strong', { text: '@' + n.handle }), h('small', { text: where })]),
+      h('span', { class: 'wl-pro__who' }, [handleTitle(n.handle), h('small', { text: where })]),
       actions,
       note,
     ]);
   }
-  const lateNoms = nomList($('[data-wl-noms-late]'), $('[data-wl-add-nom-late]'), 'wl-noms-late-err');
+  // The pros already saved for this sign-up (the server keeps up to 3).
+  const savedNoms = () => (current && Array.isArray(current.nominations) ? current.nominations : []).filter((n) => n && SOCIAL.test(n.handle || ''));
+  const lateNoms = nomList($('[data-wl-noms-late]'), $('[data-wl-add-nom-late]'), 'wl-noms-late-err',
+    () => Math.max(1, MAX_NOMINATIONS - savedNoms().length));
   function renderAsk(isClient) {
-    const list = (Array.isArray(current.nominations) ? current.nominations : []).filter((n) => n && SOCIAL.test(n.handle || ''));
+    const list = savedNoms();
     const ask = $('[data-wl-ask]');
     const late = $('[data-wl-nominate-late]');
     ask.hidden = !isClient || !list.length;
-    late.hidden = !isClient || list.length > 0 || !isOwner();
+    // Open until 3 pros are saved: "Who's your pro?" first, then "Add
+    // another pro" under their Message cards, for the rest.
+    const left = MAX_NOMINATIONS - list.length;
+    late.hidden = !isClient || left <= 0 || !isOwner();
+    if (!late.hidden) {
+      $('[data-wl-late-title]').textContent = list.length ? 'Add another pro' : "Who's your pro?";
+      // (Its row button says "Add one more" then, so the panel never repeats its title.)
+      $('[data-wl-add-nom-late-text]').textContent = list.length ? 'Add one more' : 'Add another pro';
+      $('[data-wl-late-fine]').textContent = list.length
+        ? `You can add ${left} more ${left === 1 ? 'pro' : 'pros'} you'd love to book here. We'll invite them, and we won't share your name.`
+        : "Add up to 3 pros you'd love to book here. We'll invite them, and we won't share your name.";
+      // Rows past the new limit go (what was typed in the others stays).
+      $$('.wl-nom', $('[data-wl-noms-late]')).slice(Math.max(1, left)).forEach((r) => r.remove());
+      lateNoms.sync();
+    }
     if (!isClient) return;
     const askText = pickAskText();
     const msg = `${askText.text} ${proInviteUrl(askText.id)}`;
     $('[data-wl-ask-msg]').value = msg;
     $('[data-wl-ask-manual]').hidden = true;
     $('[data-wl-ask-list]').replaceChildren(...list.map((n) => proCard(n, msg)));
+    fitAll();
   }
   // Any handle typed into the step 2 boxes (saved or not).
-  const lateNomsTyped = () => $$('input', $('[data-wl-noms-late]')).some((i) => i.value.trim());
+  const lateNomsTyped = () => $$('.wl-oneline', $('[data-wl-noms-late]')).some((i) => i.value.trim());
   // Saves the step 2 pros (the Save button, or Skip with handles typed).
   let savingNoms = false;
   async function saveLateNoms() {
     if (savingNoms) return;
     const err = $('#wl-noms-late-err');
     const n = lateNoms.read();
+    // A pro already saved isn't sent again (the server would skip it anyway).
+    const saved = new Set(savedNoms().map((x) => String(x.handle).toLowerCase()));
+    const dupe = n.list.find((x) => saved.has(x.handle));
+    n.list = n.list.filter((x) => !saved.has(x.handle));
     if (n.bad || !n.list.length) {
-      err.textContent = n.bad ? `Check ${n.bad}. Handles use letters, numbers, dots and underscores only.` : "Add your pro's Instagram or TikTok handle.";
+      err.textContent = n.bad
+        ? `Check ${n.bad}. Handles use letters, numbers, dots and underscores only.`
+        : dupe ? `@${dupe.handle} is already on your list.` : "Add your pro's Instagram or TikTok handle.";
       err.hidden = false;
       return;
     }
@@ -1075,6 +1310,7 @@
     try {
       const { ok, status: code, data } = await post({ action: 'update', manage_token: myKey(), nominations: n.list });
       if (ok && data && data.referral_code) {
+        lateNoms.reset();
         showSuccess({ ...data, already_joined: current.already_joined }, { role: current.role, region: current.region, city: current.city });
         say('Thanks. Now let them know.');
         // The late panel is gone now: keep focus with their new cards.
@@ -1111,7 +1347,7 @@
     const panel = $('[data-wl-reward]');
     panel.hidden = !isClient;
     if (!isClient) return;
-    const goal = Number.isInteger(current.milestone) && current.milestone > 0 ? current.milestone : MILESTONE;
+    const goal = goalOf(current);
     const count = known ? Math.max(0, current.referral_count) : 0;
     const done = known && (current.reward_earned === true || count >= goal);
     const granted = known && current.reward_granted === true;
@@ -1136,7 +1372,7 @@
     note.textContent = granted
       ? "It's on your BookNStyle account: your first booking fee is on us."
       : done
-        ? "Your first booking fee is on us. Sign up in the BookNStyle app with this email after launch and it's added to your account. If it isn't, email support@booknstyle.com from this address. No cash value."
+        ? "Your first booking fee is on us. Sign up in the BookNStyle app with this email after launch and it's added to your account. If it isn't, email support@booknstyle.com from this address."
         : `Bring ${goal} friends with your link. When you sign up in the app with this email, your first booking fee is on us.`;
   }
 
@@ -1320,7 +1556,15 @@
     const canShareFile = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [file] }));
     storyFile = file;
     storyCanShare = canShareFile;
-    label.textContent = canShareFile ? 'Share to your story' : 'Save story image';
+    label.textContent = canShareFile ? 'Share story image' : 'Save story image';
+    // The same, short, for a narrow panel (a zoomed-in phone): one line, never
+    // cut off. Each short label is the start of the long one (the aria-label),
+    // so a Voice Control user can say the words they see (WCAG 2.5.3).
+    $('[data-wl-story-short]').textContent = canShareFile ? 'Share story' : 'Save story';
+    $('[data-wl-story-tiny]').textContent = canShareFile ? 'Share' : 'Save';
+    // The whole name for screen readers, whichever label shows (a short
+    // "Share" would sound like the Share button in the list above).
+    btn.setAttribute('aria-label', label.textContent);
     btn.onclick = async () => {
       if (canShareFile) {
         try { await navigator.share({ files: [file], title: 'BookNStyle' }); return; } catch (err) {
@@ -1735,30 +1979,95 @@
     kitSay((await copyText(line)) ? 'Bio line copied. Put your link in the link field.' : line);
   });
 
-  // ---------- Invite another pro (R5): a link, a share and a count, never names ----------
+  // ---------- Links for pros: "Know a pro" (pros, R5) and "Your link for pros" (clients and both) ----------
+  // The share link with role=pro: it opens this page set up for pros (the
+  // pro headline and lead, "A pro" picked, the hook above). The ref code
+  // rides along, so a pro who joins with it counts for this member the same
+  // as a friend (052 counts any new sign-up with the code). A pro's (or a
+  // both's) carries utm_campaign=pro_invite, a client's client_pro_link.
   const proInviteLink = (d) => {
     const code = String((d && d.referral_code) || '').toUpperCase();
     if (!CODE.test(code)) return 'https://booknstyle.com/pro';
-    return d.share_url + (d.share_url.includes('?') ? '&' : '?') + 'role=pro&utm_campaign=pro_invite';
+    const campaign = d.role === 'client' ? CLIENT_PRO_LINK_CAMPAIGN : PRO_INVITE_CAMPAIGN;
+    return d.share_url + (d.share_url.includes('?') ? '&' : '?') + 'role=pro&utm_campaign=' + campaign;
   };
+  // Shown without "https://" and the utm tag, so it fits and reads cleanly;
+  // Copy and Share use the full link. (Copied by hand, it still works.)
+  const shownLink = (link) => link.replace(/^https?:\/\//, '').replace(/&utm_campaign=[^&#]*/, '');
+  // Clients and both: the line under "Your link for friends". Once the
+  // reward is earned there is nothing left to count toward.
+  const friendsDone = () => !!current && (current.reward_earned === true
+    || (Number.isInteger(current.referral_count) ? current.referral_count : 0) >= goalOf(current));
+  function friendsNote() {
+    return friendsDone()
+      ? 'You brought your friends. They can still join with it.'
+      : `Each friend who joins with it counts toward your ${goalOf(current)} friends.`;
+  }
+  // Clients and both: the second row of the share box. (Pros have "Know a pro".)
+  let prosTimer = 0;
+  function renderProsLink(isClient) {
+    const box = $('[data-wl-pros]');
+    box.hidden = !isClient;
+    if (!isClient) return;
+    const link = proInviteLink(current);
+    setLink($('[data-wl-pros-link]'), shownLink(link));
+    // No pressure (owner, Nov 10 2026), and true about where it lands: the
+    // pro sign-up form. Once the friends reward is earned there is nothing
+    // left to count toward.
+    $('[data-wl-pros-note]').textContent = "For pros you'd like to book here."
+      + (friendsDone() ? '' : ` Pros who join count toward your ${goalOf(current)} friends too.`);
+    const note = $('[data-wl-pros-status]');
+    note.textContent = '';
+    const tell = (msg) => {
+      // One message at a time: the friends link's line clears.
+      status.textContent = '';
+      note.textContent = msg;
+      clearTimeout(prosTimer);
+      prosTimer = setTimeout(() => { note.textContent = ''; }, 6000);
+    };
+    $('[data-wl-pros-copy]').onclick = async () => {
+      tell((await copyText(link)) ? 'Link for pros copied.' : 'Press and hold the link to copy it.');
+    };
+    // The phone's share sheet (Messages, WhatsApp), where there is one.
+    const share = $('[data-wl-pros-share]');
+    // Only a "both" who holds a booking link can say "I just claimed my link".
+    const holdsLink = current.role === 'both' && !!current.reserved_handle;
+    const data = { title: 'BookNStyle', text: holdsLink ? PRO_INVITE_TEXT : CLIENT_TO_PRO_TEXT, url: link };
+    share.hidden = !(navigator.share && (!navigator.canShare || navigator.canShare(data)));
+    share.onclick = async () => { try { await navigator.share(data); } catch { /* closed */ } };
+    // A "both" no longer sees "Know a pro", so its count lives here: only
+    // pros who joined with the code, once the server sends it (R5).
+    const count = $('[data-wl-pros-count]');
+    const pros = current.role === 'both' && current.owner === true && Number.isInteger(current.pro_referral_count)
+      ? Math.max(0, current.pro_referral_count) : null;
+    count.hidden = pros === null;
+    count.textContent = pros === null ? '' : `Pros who joined from your invite: ${pros}`;
+  }
   function renderProInvite(isPro) {
     const panel = $('[data-wl-proinvite]');
     panel.hidden = !isPro;
     if (!isPro) return;
     const link = proInviteLink(current);
-    $('[data-wl-pi-link]').value = link.replace(/^https?:\/\//, '');
+    setLink($('[data-wl-pi-link]'), shownLink(link));
     const status = $('[data-wl-pi-status]');
     $('[data-wl-pi-copy]').onclick = async () => { status.textContent = (await copyText(link)) ? 'Link copied.' : 'Press and hold the link to copy it.'; };
     const share = $('[data-wl-pi-share]');
     const data = { title: 'BookNStyle', text: PRO_INVITE_TEXT, url: link };
     share.hidden = !(navigator.share && (!navigator.canShare || navigator.canShare(data)));
     share.onclick = async () => { try { await navigator.share(data); } catch { /* closed */ } };
-    // Everyone who joined with this pro's code. Their code now travels only
-    // on this invite (their clients get the held page), hence "your invite".
-    const n = current.owner === true && Number.isInteger(current.referral_count) ? current.referral_count : null;
+    // The count (R5). pro_referral_count, once the server sends it, counts
+    // only pros (role pro or both) who joined with this code: "Pros who
+    // joined from your invite". Until then referral_count counts everyone
+    // who used the code, so a pro sees "People who joined from your invite" (their
+    // clients get the held page, so this is mostly pros). A "both" doesn't:
+    // that same number is already their friends progress above.
+    const owner = current.owner === true;
+    const pros = owner && Number.isInteger(current.pro_referral_count) ? Math.max(0, current.pro_referral_count) : null;
+    const all = owner && current.role === 'pro' && Number.isInteger(current.referral_count) ? Math.max(0, current.referral_count) : null;
     const count = $('[data-wl-pi-count]');
-    count.hidden = n === null;
-    count.textContent = n === null ? '' : `Joined from your invite: ${n}`;
+    const text = pros !== null ? `Pros who joined from your invite: ${pros}` : all !== null ? `People who joined from your invite: ${all}` : '';
+    count.hidden = !text;
+    count.textContent = text;
   }
 
   // ---------- Coming back: this browser's saved key ----------
@@ -1787,19 +2096,68 @@
 
   const savedKey = store.get(KEYS.key);
   const previewing = IS_LOCAL && params.has('preview');
+  let refreshed = Promise.resolve();
   if (savedKey && !previewing) {
     // Saved data first (no spinner), then the server's fresh copy.
     try {
       const saved = JSON.parse(store.get(KEYS.state) || 'null');
       if (saved && saved.referral_code) showSuccess({ ...saved, already_joined: true, owner: true }, { fromStorage: true });
     } catch { /* ignore */ }
-    (async () => {
+    refreshed = (async () => {
       try {
         const { ok, status: code, data } = await post({ action: 'status', manage_token: savedKey });
         if (ok && data && data.referral_code) showSuccess(data, { fromStorage: true });
         else if (code === 404) forget();
       } catch { /* keep the saved view */ }
     })();
+  }
+
+  // ---------- The day 1 email's "Open your kit" (?k=, R2) ----------
+  // The pro's own kit on any phone or computer: the signed key in the link
+  // is traded for their details (waitlist-kit), shown read only (no Change
+  // link, nothing saved here). In the browser they joined from, which
+  // already shows their own view, it only scrolls to the kit. The key
+  // leaves the address bar once the server has answered (kept on a network
+  // error, so a reload tries again). A wrong or expired key leaves the page
+  // as it was.
+  const kitKey = params.get('k') || '';
+  const dropKitKey = () => {
+    try {
+      const u = new URL(location.href);
+      u.searchParams.delete('k');
+      history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+    } catch { /* keep the address as it is */ }
+  };
+  async function kitPost(key) {
+    if (MOCK) {
+      await new Promise((r) => setTimeout(r, 300));
+      return { ok: true, status: 200, data: mockDetail({ already_joined: true, kit_only: true, specialty: 'barber' }) };
+    }
+    const resp = await fetch(KIT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k: key }) });
+    return { ok: resp.ok, status: resp.status, data: await resp.json().catch(() => null) };
+  }
+  function showKitPanel() {
+    const panel = $('[data-wl-kit]');
+    if (!panel || panel.hidden) return;
+    panel.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
+  async function openKit(key) {
+    let answer;
+    try { answer = await kitPost(key); } catch { return; }
+    dropKitKey();
+    const { ok, data } = answer;
+    if (!ok || !data || !data.referral_code || !data.reserved_handle) return;
+    // This browser's own sign-up: keep its full view.
+    if (!(isOwner() && current.referral_code === data.referral_code)) {
+      // Their craft from the sign-up (this browser's saved craft may be someone else's).
+      kit.craft = CRAFT_OF[data.specialty] || 'general';
+      showSuccess(data, {});
+    }
+    showKitPanel();
+  }
+  if (params.has('k')) {
+    if (KIT_KEY.test(kitKey) && !previewing) refreshed.then(() => openKit(kitKey));
+    else dropKitKey();
   }
 
   // ---------- Local preview only (localhost): ?mock and ?preview ----------
@@ -1827,15 +2185,24 @@
     const message = { reserved: "That name isn't available. Please try another.", taken: 'That link is taken. Please try another.', available: 'Available' }[status];
     return { ok: true, status: 200, data: { handle: v, status, available: status === 'available', message } };
   }
+  // The mock's one sign-up: its role and the pros saved so far (?mock only).
+  let mockRole = ['client', 'both'].includes(params.get('role')) ? params.get('role') : 'pro';
+  let mockNoms = [];
   async function mockPost(body) {
     await new Promise((r) => setTimeout(r, 300));
     if (body.action === 'status') return { ok: true, status: 200, data: mockDetail({ already_joined: true }) };
-    if (body.action === 'update') return { ok: true, status: 200, data: mockDetail({ already_joined: true, reserved_handle: body.reserved_handle || 'jasmine-braids', nominations: body.nominations || [] }) };
+    if (body.action === 'update') {
+      // As waitlist_add_nominations: appended, a handle already saved skipped, 3 at most.
+      (body.nominations || []).forEach((n) => { if (mockNoms.length < 3 && !mockNoms.some((m) => m.handle === n.handle)) mockNoms.push(n); });
+      return { ok: true, status: 200, data: mockDetail({ already_joined: true, role: mockRole, reserved_handle: mockRole === 'client' ? null : (body.reserved_handle || 'jasmine-braids'), nominations: mockNoms.slice() }) };
+    }
     // ?race=<name>: someone else took that link between the check and the join.
     if (body.reserved_handle && params.get('race') === body.reserved_handle) {
       return { ok: false, status: 400, data: { error: 'That link is taken. Please try another.', field: 'reserved_handle' } };
     }
     const role = body.role;
+    mockRole = role;
+    mockNoms = [];
     return { ok: true, status: 200, data: mockDetail({ role, referral_count: 0, founding_pro: role !== 'client', founding_member: role !== 'pro', reserved_handle: role === 'client' ? null : body.reserved_handle, nominations: body.nominations || [], region: body.outside_ny ? 'outside_ny' : 'ny', city: body.city, manage_token: 'mock-key' }) };
   }
   if (IS_LOCAL) window.__wlDrawStory = (d, live) => drawStory(mockDetail(d || {}), !!live);
@@ -1856,7 +2223,9 @@
       founding_member: role !== 'pro',
       reward_earned: role !== 'pro' && n >= MILESTONE,
       reserved_handle: role === 'client' ? null : (params.get('handle') || 'jasmine-braids'),
-      nominations: role === 'pro' ? [] : [{ platform: 'instagram', handle: 'nails.by.tee' }, { platform: 'tiktok', handle: 'fadeking.nyc' }],
+      // ?noms=0 to 3: how many pros are saved already (2 if not given).
+      nominations: role === 'pro' ? [] : [{ platform: 'instagram', handle: 'nails.by.tee' }, { platform: 'tiktok', handle: 'fadeking.nyc' }, { platform: 'instagram', handle: 'lashes.by.mo' }]
+        .slice(0, Math.min(3, Math.max(0, Number(params.get('noms') ?? 2) || 0))),
       region: outside ? 'outside_ny' : 'ny',
       city: outside ? (params.get('city') || 'Atlanta') : null,
       already_joined: stranger || params.get('returning') === '1',

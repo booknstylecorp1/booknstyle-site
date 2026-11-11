@@ -51,7 +51,7 @@
     html { background: var(--ink-0); }
     body {
       min-height: 100vh; min-height: 100svh; display: grid; place-items: center;
-      padding: calc(48px + env(safe-area-inset-top, 0px)) 16px calc(48px + env(safe-area-inset-bottom, 0px));
+      padding: calc(48px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(48px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
       background: var(--ink-0); color: var(--text);
       font: 16px/1.6 var(--sans); text-align: center;
       -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
@@ -83,7 +83,7 @@
     .code::before, .code::after { content: ""; width: 26px; height: 1px; background: currentColor; opacity: .55; }
     h1 {
       margin-top: 18px; font-family: var(--serif); font-weight: 400; font-optical-sizing: auto;
-      font-size: clamp(2.6rem, 1.7rem + 4vw, 4.25rem); line-height: 1.02; letter-spacing: -.024em; text-wrap: balance;
+      font-size: min(clamp(2.6rem, 1.7rem + 4vw, 4.25rem), 15vw); line-height: 1.02; letter-spacing: -.024em; text-wrap: balance;
     }
     h1 em { font-style: italic; font-weight: 400; background: var(--grad-gold-text); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: .06em; }
     p.lead { margin-top: 20px; max-width: 26em; color: var(--text-2); font-size: clamp(1.0625rem, 1rem + .28vw, 1.25rem); line-height: 1.6; text-wrap: pretty; }
@@ -93,7 +93,7 @@
       display: inline-flex; align-items: center; justify-content: center; gap: 10px;
       min-height: 56px; margin-top: 34px; padding: 0 30px; border-radius: 999px;
       background: var(--grad-gold); color: var(--ink-text);
-      font-family: var(--sans); font-size: 1rem; font-weight: 600; letter-spacing: .01em; text-decoration: none; white-space: nowrap;
+      font-family: var(--sans); font-size: 1rem; font-weight: 600; letter-spacing: .01em; text-decoration: none; white-space: nowrap; max-width: 100%;
       box-shadow: 0 10px 30px -12px rgba(200, 149, 106, .65), inset 0 1px 0 rgba(255, 255, 255, .35);
       transition: transform .5s var(--ease-out), box-shadow .5s var(--ease-out);
     }
@@ -109,8 +109,22 @@
     .btn:active { transform: translateY(0) scale(.985); }
     .btn:focus-visible { outline-offset: 4px; border-radius: 999px; }
     .help { margin-top: 26px; font-size: .875rem; color: var(--text-3); }
-    .help a { color: var(--champ-l); text-decoration: underline; text-decoration-color: rgba(223, 185, 144, .55); text-underline-offset: 3px; transition: text-decoration-color .3s; }
+    .help a { overflow-wrap: anywhere; color: var(--champ-l); text-decoration: underline; text-decoration-color: rgba(223, 185, 144, .55); text-underline-offset: 3px; transition: text-decoration-color .3s; }
     .help a:hover { text-decoration-color: currentColor; }
+    /* Narrow windows (a zoomed-in iPhone, Split View): the button keeps one line, with a shorter label */
+    .btn__short { display: none; }
+    @media (max-width: 359px) { .btn { padding-inline: 22px; } }
+    @media (max-width: 239px) {
+      .btn { padding-inline: 20px; } .btn__long { display: none; } .btn__short { display: inline; }
+      .code { gap: 8px; } .code::before, .code::after { width: 14px; }
+    }
+    @media (max-width: 199px) { .btn { padding-inline: 16px; } .btn svg { display: none; } }
+    @media (max-width: 159px) {
+      .btn { padding-inline: 14px; white-space: normal; text-align: center; line-height: 1.2; }
+      .word { font-size: 10px; letter-spacing: .2em; margin-right: -.2em; }
+      .code { letter-spacing: .16em; }
+      .code::before, .code::after { display: none; }
+    }
     @media (prefers-reduced-motion: reduce) {
       .btn, .btn::after, .btn svg, .help a { transition: none; }
       .btn:hover, .btn:hover svg { transform: none; }
@@ -137,9 +151,9 @@
     <p class="code">Error 404</p>
     <h1>This page took <em>the day off.</em></h1>
     <p class="lead">The page you're looking for doesn't exist or has moved. Let's get you back to booking.</p>
-    <a class="btn" href="/">Back to BookNStyle
+    <a class="btn" href="/"><span class="btn__long">Back to BookNStyle</span><span class="btn__short">Back home</span>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-    <p class="help">Need help? Email <a href="mailto:support@booknstyle.com">support@booknstyle.com</a></p>
+    <p class="help">Need help? Email <a href="mailto:support@booknstyle.com">support<wbr>@booknstyle.<wbr>com</a></p>
   </main>
 </body>
 </html>

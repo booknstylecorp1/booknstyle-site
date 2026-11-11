@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- The no-show calculator's promise ("Nothing is sent"): this page may connect to this site only -->
+  <meta http-equiv="Content-Security-Policy" content="connect-src 'self'">
   <title>BookNStyle | Book personal care pros near you</title>
   <meta name="description" content="Discover, book and message barbers, stylists, nail and lash techs and more near you. For pros: zero commission and payouts straight to your bank.">
   <link rel="canonical" href="https://booknstyle.com/">
@@ -37,10 +39,11 @@
   <link rel="preload" href="assets/fonts/bodoni-moda-italic.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" as="image" href="assets/mark.webp" type="image/webp">
-  <link rel="stylesheet" href="styles.css?v=20261031a">
+  <link rel="stylesheet" href="styles.css?v=20261111c">
   <!-- aud-client: a link with ?for=clients opens the client version of the top section, set here so the pro version never flashes first -->
   <script>document.documentElement.classList.add('js');try{if(/^clients?$/i.test(new URLSearchParams(location.search).get('for')||''))document.documentElement.classList.add('aud-client');}catch(e){}</script>
   <script src="main.js?v=20261031a" defer></script>
+  <script src="calculator.js?v=20261111c" defer></script>
 
   <script type="application/ld+json">
   {
@@ -57,7 +60,7 @@
         "sameAs": ["https://www.instagram.com/booknstyle.us"],
         "address": {
           "@type": "PostalAddress",
-          "streetAddress": "111 Great Neck Road",
+          "streetAddress": "111 Great Neck Road, Suite 306",
           "addressLocality": "Great Neck",
           "addressRegion": "NY",
           "postalCode": "11021",
@@ -145,7 +148,7 @@
           <a class="btn btn--gold" href="waitlist/" data-soon-only>Join the waitlist</a>
           <a class="text-link" href="https://www.instagram.com/booknstyle.us" data-soon-only><svg aria-hidden="true"><use href="#i-instagram"/></svg>Follow the launch</a>
           <a class="btn btn--gold" href="#download" data-live-only hidden>Get the app</a>
-          <p><a href="mailto:support@booknstyle.com">support@booknstyle.com</a></p>
+          <p><a href="mailto:support@booknstyle.com"><span>support<wbr>@booknstyle.<wbr>com</span></a></p>
         </div>
       </nav>
 
@@ -201,10 +204,10 @@
         </p>
 
         <div class="hero__ctas intro" style="--d:.6s">
-          <a class="btn btn--gold" href="waitlist/?role=pro" data-aud="pro" data-soon-only>Claim your booking link<svg class="btn__arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          <a class="btn btn--ghost" href="#pros" data-aud="pro" data-soon-only>See how it works</a>
+          <a class="btn btn--gold" href="waitlist/?role=pro" data-aud="pro" data-soon-only><span class="btn__long">Claim your booking link</span><span class="btn__short">Claim your link</span><svg class="btn__arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn--ghost" href="#pros" data-aud="pro" data-soon-only><span class="btn__long">See how it works</span><span class="btn__short">How it works</span></a>
           <a class="btn btn--gold" href="waitlist/" data-aud="client" data-soon-only>Join the waitlist<svg class="btn__arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          <a class="btn btn--ghost" href="#clients" data-aud="client" data-soon-only>See how booking works</a>
+          <a class="btn btn--ghost" href="#clients" data-aud="client" data-soon-only><span class="btn__long">See how booking works</span><span class="btn__short">How it works</span></a>
           <a class="btn btn--gold" href="#download" data-live-only hidden>Get the app<svg class="btn__arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
         </div>
 
@@ -324,7 +327,7 @@
               <p class="offer__hold">Held for you until 60 days after launch.</p>
               <a class="claim" href="waitlist/?role=pro">
                 <span class="claim__label">Claim your link</span>
-                <span class="claim__url"><svg aria-hidden="true"><use href="#i-link"/></svg><span class="claim__host">app.booknstyle.com/book/</span><strong>yourname</strong><span class="claim__caret" aria-hidden="true"></span></span>
+                <span class="claim__url"><svg aria-hidden="true"><use href="#i-link"/></svg><span class="claim__host">app.<wbr>booknstyle.<wbr>com/<wbr>book/</span><strong>yourname</strong><span class="claim__caret" aria-hidden="true"></span></span>
                 <span class="claim__go" aria-hidden="true"><svg><use href="#i-arrow"/></svg></span>
               </a>
             </div>
@@ -376,7 +379,7 @@
           <figcaption class="sr-only" id="film-p3-text">On some booking apps, a cut comes out when a new client books you. BookNStyle takes no commission on your services, only standard card processing, and cash payments stay yours. Your clients stay yours, and your booking link and QR code let them book you directly. Launching soon across the US. Pros, claim your link. Sample profiles shown.</figcaption>
         </figure>
 
-        <ul class="rows rows--3" role="list" aria-label="Tools for pros">
+        <ul class="rows rows--3" id="pro-tools" role="list" aria-label="Tools for pros">
           <li class="row reveal"><span class="row__icon" aria-hidden="true"><svg><use href="#i-qr"/></svg></span><h3>Booking link and QR code</h3><p>Share your link or print your QR code. Clients book you directly through it.</p></li>
           <li class="row reveal" style="--d:.06s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-percent"/></svg></span><h3>Deposits, flat or percentage</h3><p>Require a deposit to hold the slot, on the services you choose.</p></li>
           <li class="row reveal" style="--d:.12s"><span class="row__icon" aria-hidden="true"><svg><use href="#i-shield"/></svg></span><h3>Your own policies</h3><p>Set your cancellation policy and how close to the appointment clients can reschedule.</p></li>
@@ -386,13 +389,81 @@
         </ul>
         <!-- The other three tools, one tap away, to keep the phone page short (R3) -->
         <details class="tools-more">
-          <summary>All pro tools<svg aria-hidden="true"><use href="#i-plus"/></svg></summary>
+          <summary><span class="btn__long">All pro tools</span><span class="btn__short">Pro tools</span><svg aria-hidden="true"><use href="#i-plus"/></svg></summary>
           <ul class="rows rows--3" role="list" aria-label="More tools for pros">
             <li class="row"><span class="row__icon" aria-hidden="true"><svg><use href="#i-clipboard"/></svg></span><h3>Custom intake forms</h3><p>Ask about allergies, skin details or treatment prep before the appointment.</p></li>
             <li class="row"><span class="row__icon" aria-hidden="true"><svg><use href="#i-image"/></svg></span><h3>Portfolio and services</h3><p>Show off your work next to the services you offer, all in one profile.</p></li>
             <li class="row"><span class="row__icon" aria-hidden="true"><svg><use href="#i-list"/></svg></span><h3>Waitlist</h3><p>Clients can join your waitlist for popular times.</p></li>
           </ul>
         </details>
+
+        <!-- No-show cost calculator (pro marketing plan, Nov 10 2026, section 5; choices from section 8.2).
+             calculator.js runs it in the browser: no network, no cookies, no storage, no analytics. The numbers
+             never leave the page (this page's Content-Security-Policy allows connections to this site only).
+             It shows the loss only, never a promise: BookNStyle does not recover this money or stop no-shows.
+             Without JavaScript it stays hidden (styles.css, section 24). -->
+        <section class="calc reveal" id="calculator" aria-labelledby="calc-title" data-calc>
+          <div class="calc__card">
+            <div class="calc__head">
+              <h3 class="calc__title" id="calc-title">What do <span class="calc__nw">no-shows</span> cost you <em>in a typical month?</em></h3>
+              <p class="calc__lead"><svg aria-hidden="true"><use href="#i-lock"/></svg><span>Your numbers stay on your device. Nothing is sent or saved.</span></p>
+            </div>
+            <div class="calc__body">
+              <div class="calc__inputs" role="group" aria-labelledby="calc-title">
+                <div class="calc__field">
+                  <label for="calc-price">Your usual service price</label>
+                  <div class="calc__box calc__box--money"><span aria-hidden="true">$</span><input id="calc-price" type="text" inputmode="decimal" maxlength="12" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next" data-calc-in="price" data-min="0" data-max="2000"></div>
+                </div>
+                <div class="calc__field">
+                  <label for="calc-noshow"><span class="calc__nw">No-shows</span> in a typical month</label>
+                  <div class="calc__box"><input id="calc-noshow" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next" data-calc-in="noshow" data-min="0" data-max="60"></div>
+                </div>
+                <div class="calc__field">
+                  <label for="calc-late">Late cancels you couldn't fill, in a typical month</label>
+                  <div class="calc__box"><input id="calc-late" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done" data-calc-in="late" data-min="0" data-max="60"></div>
+                </div>
+                <details class="calc__more" id="calc-more">
+                  <summary><span>Add your time</span><svg aria-hidden="true"><use href="#i-plus"/></svg></summary>
+                  <div class="calc__morebody">
+                    <div class="calc__field">
+                      <label for="calc-minutes">Minutes a day on booking messages</label>
+                      <div class="calc__box"><input id="calc-minutes" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next" data-calc-in="minutes" data-min="0" data-max="600"></div>
+                    </div>
+                    <div class="calc__field" data-calc-days hidden>
+                      <label for="calc-days">Days you work a week</label>
+                      <div class="calc__box"><input id="calc-days" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done" value="5" data-calc-in="days" data-min="1" data-max="7"></div>
+                    </div>
+                  </div>
+                </details>
+              </div>
+
+              <div class="calc__out">
+                <!-- What shows is set by calculator.js (states A to D, plan section 5); this is state A. -->
+                <div class="calc__result" data-calc-result>
+                  <p class="calc__prompt" data-calc-prompt>Add your price and your <span class="calc__nw">no-shows</span> to see the cost.</p>
+                  <p class="calc__month" data-calc-month hidden>About <strong data-calc-month-n></strong> in a typical month.</p>
+                  <p class="calc__year" data-calc-year hidden>About <strong data-calc-year-n></strong> a year.</p>
+                  <p class="calc__hours" data-calc-hours hidden></p>
+                  <p class="calc__fine" data-calc-fine hidden>A rough estimate from your own numbers. It counts the service price only, not tips, products or the time you held open.</p>
+                </div>
+                <!-- Read aloud a moment after typing stops, so a screen reader isn't interrupted on every key.
+                     It stays empty until the visitor first types: nothing is announced on page load. -->
+                <p class="sr-only" aria-live="polite" aria-atomic="true" data-calc-live></p>
+                <!-- The three choices (plan section 8.2). All look the same; none is pushed. calculator.js adds the
+                     visitor's own utm_source, utm_medium, utm_content and ref (utm_source=short_link if they
+                     arrived with no tags); the role is always pro, whatever role the visitor arrived with.
+                     "Just look around" goes to the pro tools list (#pro-tools): no form there. "Remind me at launch" stays hidden until the waitlist's remind_only flag
+                     is built (plan section 7.3, Decision 8): today a pro who joins gets 4 to 5 emails, not one. -->
+                <ul class="calc__choices" role="list" aria-label="Your choice">
+                  <li data-soon-only><a class="btn btn--ghost calc__choice" href="waitlist/?role=pro&amp;utm_campaign=choice_claim&amp;utm_term=calc" data-calc-choice="choice_claim">Claim my link</a></li>
+                  <li><a class="btn btn--ghost calc__choice" href="#pro-tools" aria-label="Just look around"><span class="calc__long">Just look around</span><span class="calc__short" aria-hidden="true">Look around</span></a></li>
+                  <li data-live-only hidden><a class="btn btn--ghost calc__choice" href="#download">Get the app</a></li>
+                  <li data-soon-only data-calc-remind hidden><a class="btn btn--ghost calc__choice" href="waitlist/?role=pro&amp;utm_campaign=choice_remind&amp;utm_term=calc" data-calc-choice="choice_remind">Remind me at launch</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -588,7 +659,7 @@
         </div>
         <div class="facts reveal">
           <p class="facts__label">Plain facts</p>
-          <p>BookNStyle LLC, Great Neck, New York. Real support at <a href="mailto:support@booknstyle.com">support@booknstyle.com</a>.</p>
+          <p>BookNStyle LLC, Great Neck, New York. Real support at <a class="u-email" href="mailto:support@booknstyle.com">support<wbr>@booknstyle.<wbr>com</a>.</p>
         </div>
         <ul class="cards cards--4" role="list">
           <li class="card reveal"><span class="card__icon" aria-hidden="true"><svg><use href="#i-lock"/></svg></span><h3>Payments by Stripe</h3><p>Card payments are processed by Stripe, so your card details never touch our servers.</p></li>
@@ -605,7 +676,7 @@
         <div class="faq__intro">
           <p class="eyebrow reveal"><span class="eyebrow__num">06</span><span class="eyebrow__rule"></span>FAQ</p>
           <h2 class="title reveal" id="faq-title" style="--d:.06s">Questions, <em>answered.</em></h2>
-          <p class="reveal" style="--d:.12s">Still wondering about something? Email <a href="mailto:support@booknstyle.com">support@booknstyle.com</a> or visit our <a href="https://legal.booknstyle.com/support/">support page</a>.</p>
+          <p class="reveal" style="--d:.12s">Still wondering about something? Email <a class="u-email" href="mailto:support@booknstyle.com">support<wbr>@booknstyle.<wbr>com</a> or visit our <a href="https://legal.booknstyle.com/support/">support page</a>.</p>
         </div>
         <div class="faq__list reveal">
           <details class="faq__item" name="faq">
@@ -638,7 +709,7 @@
           </details>
           <details class="faq__item" name="faq">
             <summary>How do I contact support?<span class="faq__icon" aria-hidden="true"><svg><use href="#i-plus"/></svg></span></summary>
-            <div class="faq__answer"><p>Email <a href="mailto:support@booknstyle.com">support@booknstyle.com</a> or visit <a href="https://legal.booknstyle.com/support/">legal.booknstyle.com/support</a>. To delete your account and data, see <a href="https://legal.booknstyle.com/delete-account/">Delete account</a>.</p></div>
+            <div class="faq__answer"><p>Email <a class="u-email" href="mailto:support@booknstyle.com">support<wbr>@booknstyle.<wbr>com</a> or visit <a href="https://legal.booknstyle.com/support/">legal.booknstyle.com/support</a>. To delete your account and data, see <a href="https://legal.booknstyle.com/delete-account/">Delete account</a>.</p></div>
           </details>
         </div>
       </div>
@@ -719,14 +790,14 @@
       <div class="footer-col">
         <h2 class="footer-title">Contact</h2>
         <ul role="list">
-          <li><a href="mailto:support@booknstyle.com"><svg aria-hidden="true"><use href="#i-mail"/></svg>support@booknstyle.com</a></li>
-          <li><a href="https://www.instagram.com/booknstyle.us"><svg aria-hidden="true"><use href="#i-instagram"/></svg>Instagram @booknstyle.us</a></li>
+          <li><a href="mailto:support@booknstyle.com"><svg aria-hidden="true"><use href="#i-mail"/></svg><span>support<wbr>@booknstyle.<wbr>com</span></a></li>
+          <li><a href="https://www.instagram.com/booknstyle.us"><svg aria-hidden="true"><use href="#i-instagram"/></svg><span>Instagram @booknstyle.<wbr>us</span></a></li>
         </ul>
       </div>
     </div>
     <p class="footer-word container" aria-hidden="true">BookNStyle</p>
     <div class="container footer-bottom">
-      <p>Copyright 2026 BookNStyle LLC, 111 Great Neck Road, Great Neck, NY 11021</p>
+      <p>Copyright 2026 BookNStyle LLC, 111 Great Neck Road, Suite 306, Great Neck, NY 11021</p>
       <p>BookNStyle is for adults 18 and older.</p>
       <p class="footer-legal">Apple, the Apple logo and App Store are trademarks of Apple Inc. Google Play and the Google Play logo are trademarks of Google LLC.</p>
     </div>
