@@ -61,10 +61,12 @@
   // says "if you want it", never "to look over". Owner-approved Nov 10 2026;
   // it ships with the calm pro heading (plan row 8).
   const CLIENT_TO_PRO_TEXT = "Saw this and thought of you. Do you have a BookNStyle link yet? It's launching soon across the US, and I'd book you on it. Here's the link if you want it:";
-  // Pros outside New York: New York opens on launch day, every other state soon
-  // after (state rules plan, Oct 30 2026). Their hold is the same as everyone's,
-  // 60 days after launch, matching the Privacy Policy, welcome email and server (owner, Oct 31 2026; R4).
-  const LATER_STATE_NOTE = 'Your state opens soon after launch. Your link stays held until 60 days after launch.';
+  // Every pro, in every state, sees the same hold note (HOLD_NOTE below): the
+  // owner opens BookNStyle across the US on launch day (owner, Nov 12 2026), so
+  // the old note that told pros outside New York their state opened later is
+  // gone. The page still sends outside_ny so waitlist-join keeps its region
+  // column. The hold is 60 days after launch for everyone, matching the
+  // Privacy Policy, welcome email and server (owner, Oct 31 2026; R4).
   // "Let your pro know": the message a client sends each pro they named, with
   // their pro invite link (?ref=CODE&role=pro&utm_campaign=<id>) after it.
   // Each browser gets one of these at random and keeps it, so a client always
@@ -1113,9 +1115,7 @@
       $('[data-wl-claimed-handle]').textContent = handle;
       $('[data-wl-claimed-note]').textContent = current.handle_applied
         ? "It's on your BookNStyle profile. Share it with your clients."
-        : current.region === 'outside_ny' && !isLive()
-          ? `${LATER_STATE_NOTE} ${HOLD_SIGNUP}`
-          : HOLD_NOTE;
+        : HOLD_NOTE;
       view.hidden = false;
       linkForm.hidden = true;
       $('[data-wl-change-link]').hidden = !owner || current.handle_applied;
@@ -1362,7 +1362,7 @@
     $('[data-wl-reward-medal]').classList.toggle('wl-medal--locked', !done);
     panel.classList.toggle('wl-reward--done', done);
     if (!known) {
-      note.textContent = `Bring ${goal} friends with your link, and your first booking fee is on us. Your progress shows on this page in the browser you joined from.`;
+      note.textContent = `Bring ${goal} friends with either of your links, and your first booking fee is on us. Your progress shows on this page in the browser you joined from.`;
       return;
     }
     bar.setAttribute('aria-valuenow', String(Math.min(count, goal)));
@@ -1373,7 +1373,7 @@
       ? "It's on your BookNStyle account: your first booking fee is on us."
       : done
         ? "Your first booking fee is on us. Sign up in the BookNStyle app with this email after launch and it's added to your account. If it isn't, email support@booknstyle.com from this address."
-        : `Bring ${goal} friends with your link. When you sign up in the app with this email, your first booking fee is on us.`;
+        : `Bring ${goal} friends with either of your links. When you sign up in the app with this email, your first booking fee is on us.`;
   }
 
   // ---------- One-tap story image (1080 x 1920, drawn here, no server) ----------

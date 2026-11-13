@@ -66,6 +66,38 @@ const STORE_LINKS = {
     document.querySelectorAll('[data-live-only]').forEach((el) => { el.hidden = false; });
   }
 
+  /* ---------- Links to the waitlist carry this page's link tags ----------
+     A visitor who came from a tagged link (?utm_source=ig&utm_medium=bio, or a
+     friend's ?ref=CODE) keeps those tags on every link to the waitlist, so the
+     sign-up is counted to the right place. A tag the link sets itself (role,
+     or the calculator's utm_campaign and utm_term) is never replaced. Each
+     value is cut to 100 characters, as in calculator.js and waitlist.js. Only
+     tags from the address bar; nothing else is added. calculator.js runs after
+     this and writes its own two choice links in full. */
+  (() => {
+    const CARRY = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'ref'];
+    let params;
+    try { params = new URLSearchParams(window.location.search); } catch (e) { return; }
+    const carry = CARRY.filter((k) => params.get(k));
+    if (!carry.length) return;
+    document.querySelectorAll('a[href^="waitlist/"], a[href^="/waitlist/"]').forEach((a) => {
+      const href = a.getAttribute('href');
+      const hashAt = href.indexOf('#');
+      const hash = hashAt < 0 ? '' : href.slice(hashAt);
+      const rest = hashAt < 0 ? href : href.slice(0, hashAt);
+      const queryAt = rest.indexOf('?');
+      const path = queryAt < 0 ? rest : rest.slice(0, queryAt);
+      const q = new URLSearchParams(queryAt < 0 ? '' : rest.slice(queryAt + 1));
+      let added = false;
+      carry.forEach((k) => {
+        if (q.has(k)) return;
+        q.set(k, params.get(k).slice(0, 100));
+        added = true;
+      });
+      if (added) a.setAttribute('href', path + '?' + q.toString() + hash);
+    });
+  })();
+
   /* ---------- Header: frosted after scrolling; logo docks after the hero logo leaves ---------- */
   const header = document.querySelector('[data-header]');
   const dock = document.querySelector('[data-dock]');

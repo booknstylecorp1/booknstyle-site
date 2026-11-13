@@ -46,12 +46,14 @@
     return whole + '.' + t.slice(dot + 1).replace(/\./g, '').slice(0, 2);
   }
 
-  // A box's text cut down to a plain number. A count stops at a point ("3.5"
-  // no-shows reads as 3) and drops everything but digits. Zeros in front go.
+  // A box's text cut down to a plain number. A count stops at its first
+  // point or comma ("3.5" and "3,5" no-shows read as 3) and drops everything
+  // but digits. Zeros in front go. A count takes no thousands comma: every
+  // count tops out under 1,000, so "1,000" minutes reads 1, not the top.
   function plain(el) {
     const raw = String(el.value || '');
     if (hasCents(el)) return priceText(raw);
-    return raw.split('.')[0].replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+    return raw.split(/[.,]/)[0].replace(/\D/g, '').replace(/^0+(?=\d)/, '');
   }
 
   // A box's number: null when empty, else its number clamped to its range
@@ -64,16 +66,21 @@
     return Math.min(Number(el.dataset.max), Math.max(Number(el.dataset.min), n));
   }
 
-  // While typing: a count box keeps a plain number only; the price box keeps
-  // its digits, points and commas as typed (so "12,50" can be typed key by
-  // key) and drops anything else ("$", spaces, letters). A number past the
-  // top of its range shows as the top (60 no-shows, $2,000), so the box
-  // always matches the result. A number under the bottom (0 days) is fixed
-  // when the box is left, so a pro can still clear the box and type a new
-  // one. Leaving the box also tidies it: "007" reads 7, "85." reads 85,
-  // "12.5" and "12,50" read 12.50, "1,200" reads 1200.
+  // While typing: a count box keeps a plain number only, and the price box
+  // keeps its digits, points and commas as typed (so "12,50" can be typed key
+  // by key). Both drop anything else ("$", spaces, letters). A count box that
+  // has a point or comma in it is left as typed too, until the box is left:
+  // cutting "3." back to "3" would turn the next key into "35", so "3.5"
+  // typed key by key stays "3.5" and reads 3. A number past the top of its
+  // range shows as the top (60 no-shows, $2,000), so the box always matches
+  // the result. A number under the bottom (0 days) is fixed when the box is
+  // left, so a pro can still clear the box and type a new one. Leaving the
+  // box also tidies it: "007" reads 7, "3.5" and "3,5" no-shows read 3,
+  // "85." reads 85, "12.5" and "12,50" read 12.50, "1,200" reads 1200.
   function tidy(el, leaving) {
     const raw = String(el.value || '');
+    // The price box, or a count box with a point or comma typed in it
+    const asTyped = hasCents(el) || /[.,]/.test(raw);
     let next = plain(el);
     if (/\d/.test(next)) {
       const n = Number(next.charAt(0) === '.' ? '0' + next : next);
@@ -83,12 +90,12 @@
       else if (leaving) {
         const v = Math.max(min, n);
         next = Number.isInteger(v) ? String(v) : v.toFixed(2);
-      } else if (hasCents(el)) {
+      } else if (asTyped) {
         next = raw.replace(/[^\d.,]/g, '').replace(/^0+(?=\d)/, '');
       }
     } else if (leaving) {
       next = el.dataset.calcIn === 'days' ? String(DAYS_START) : '';
-    } else if (hasCents(el)) {
+    } else if (asTyped) {
       next = raw.replace(/[^\d.,]/g, '');
     }
     if (next !== raw) el.value = next;
@@ -228,6 +235,8 @@
   // utm_content and a client's ref code go on unchanged. With none of the
   // three tags, utm_source=short_link.
   // (Only link tags from the address bar; never a number typed above.)
+  // main.js carries the visitor's tags onto every other link to the waitlist;
+  // these two links are written here in full, after it.
   let params;
   try { params = new URLSearchParams(location.search); } catch { params = new URLSearchParams(); }
   const PASS = ['utm_source', 'utm_medium', 'utm_content', 'ref'];
