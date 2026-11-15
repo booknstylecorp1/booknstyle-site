@@ -200,7 +200,10 @@ const STORE_LINKS = {
      after a tap, so it always starts muted). Tall film on portrait phones and tablets, wide otherwise, landscape phones included
      (the same media query as .film in styles.css and the <source media> fallback in index.html). No
      autoplay with reduced motion or Data Saver, or when the browser refuses it: the poster shows with a
-     play button instead. If the file fails to load, the poster stays as a still and the button goes. */
+     play button instead. If the file fails to load, the poster stays as a still and the button goes.
+     The poster (a still from the film, the shape matching the film) covers the video until it plays,
+     then hides as soon as the film's first frame is on screen (is-live in styles.css), and covers it
+     again while a swapped film loads. */
   const TALL_FILM = '(orientation: portrait) and (max-width: 1023px)';
   const tallFilm = window.matchMedia(TALL_FILM);
   const saveData = Boolean(navigator.connection && navigator.connection.saveData);
@@ -215,7 +218,7 @@ const STORE_LINKS = {
     const wide = video && video.querySelector('source:not([media])');
     if (!button || !tall || !wide) return;
 
-    const start = parseFloat(video.dataset.start) || 0; // the poster's frame, so play picks up right where it is
+    const start = parseFloat(video.dataset.start) || 0; // where the film starts the first time
     let wants = canWatch && !reduceMotion && !saveData; // play whenever on screen
     let onScreen = false;
     let held = false; // the page-wide "Pause animations" button is on
@@ -225,11 +228,13 @@ const STORE_LINKS = {
     button.hidden = false;
     if (sound) sound.hidden = false;
     el.classList.toggle('is-manual', !wants);
+    if (el.querySelector('.film__poster')) el.classList.add('has-still');
 
     const load = () => {
       const src = (tallFilm.matches ? tall : wide).getAttribute('src');
       if (video.getAttribute('src') === src) return;
       const at = video.getAttribute('src') ? video.currentTime : start;
+      el.classList.remove('is-live'); // the still covers the swap until the new film plays
       video.src = src;
       video.addEventListener('loadedmetadata', () => { video.currentTime = at; }, { once: true });
     };
@@ -256,11 +261,13 @@ const STORE_LINKS = {
       button.setAttribute('aria-label', paused ? 'Play film' : 'Pause film');
       if (!paused) el.classList.remove('is-manual');
     };
+    const live = () => el.classList.add('is-live');
+    video.addEventListener('playing', () => { if (video.requestVideoFrameCallback) video.requestVideoFrameCallback(live); else live(); });
     video.addEventListener('play', setState);
     video.addEventListener('pause', setState);
     // JS sets video.src, so a failed load (404, dropped connection) fires here, not on the <source>s
     video.addEventListener('error', () => {
-      wants = false; button.hidden = true; el.classList.remove('is-manual');
+      wants = false; button.hidden = true; el.classList.remove('is-manual', 'is-live');
       if (sound) sound.hidden = true;
     });
 

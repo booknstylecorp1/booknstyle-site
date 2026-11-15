@@ -628,8 +628,11 @@ html:not(.js) .aud { display: none; }
 
 /* Films under the chapters: wide on wider screens, tall on portrait phones and
    tablets (keep this media query in step with TALL_FILM in main.js), always
-   short enough to fit on screen. The poster sits under the video, so the first
-   frame takes over from it seamlessly. */
+   short enough to fit on screen. The still (a frame from the film, the same
+   shape as the film the browser picks) covers the video until it plays, then
+   hides as soon as the film's first frame shows, so a film that is loading,
+   waiting for a tap or failed to load is never an empty box. main.js sets
+   has-still and is-live (Films). */
 .film { position: relative; margin: clamp(2.75rem, 2rem + 3vw, 4.5rem) auto 0; width: min(100%, max(420px, calc((100vh - 160px) * 16 / 9))); width: min(100%, max(420px, calc((100svh - 160px) * 16 / 9))); }
 .film__frame {
   position: relative; isolation: isolate; overflow: hidden; aspect-ratio: 16 / 9;
@@ -639,6 +642,8 @@ html:not(.js) .aud { display: none; }
 .film__poster, .film__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .film__frame picture { border-radius: inherit; } /* the poster inherits through it (landscape phones show the frame unclipped) */
 .film__video { background: transparent; }
+.film.has-still .film__poster { z-index: 1; pointer-events: none; } /* taps go through to the video */
+.film.has-still.is-live .film__poster { opacity: 0; }
 .js .film__video { cursor: pointer; }
 .film__ctrls { position: absolute; right: 14px; bottom: 14px; z-index: 2; display: flex; align-items: center; gap: 10px; }
 .film__ctrls .motion-toggle { background: rgba(10, 11, 17, .62); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
