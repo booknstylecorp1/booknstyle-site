@@ -22,8 +22,8 @@
    apple-itunes-app meta tag in index.html once the iPhone app is live.
    ========================================================================== */
 const STORE_LINKS = {
-  appStore: '',
-  googlePlay: '',
+  appStore: 'https://apps.apple.com/app/id6813224710',
+  googlePlay: 'https://play.google.com/store/apps/details?id=com.booknstyle.app',
 };
 
 (() => {

@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="../../styles.css?v=20261114b">
   <link rel="stylesheet" href="../waitlist.css?v=20261110e">
   <script>document.documentElement.classList.add('js');</script>
-  <script src="../../main.js" defer></script>
+  <script src="../../main.js?v=20261124-live" defer></script>
 </head>
 <body>
   <header class="site-header site-header--center" data-header>
@@ -38,7 +38,7 @@
         <div class="wl-card">
           <p class="eyebrow wl-success__eyebrow">Waitlist emails</p>
           <h1 class="wl-card__title" id="unsub-title" tabindex="-1" data-u-title>Unsubscribe from waitlist emails?</h1>
-          <p class="lead" data-u-text>You'll stop getting BookNStyle's launch and news emails, including the launch day email. You stay on the list. A booking link you claimed stays held until 60 days after launch: sign up in the app as a pro with this email to keep it.</p>
+          <p class="lead" data-u-text>You'll stop getting BookNStyle's news emails. You stay on the list. A booking link you claimed stays held until 60 days after launch: sign up in the app as a pro with this email to keep it.</p>
           <noscript><p class="wl-form-error"><span>This page needs JavaScript to unsubscribe. Turn it on and reload, or email <a href="mailto:support@booknstyle.com">support@booknstyle.com</a> and we'll unsubscribe you.</span></p></noscript>
           <p class="wl-form-error" role="alert" data-u-error hidden></p>
           <div class="wl-unsub__actions">
@@ -77,7 +77,7 @@
     const fail = (msg) => { error.textContent = msg; error.hidden = false; };
 
     const unsubscribed = () => {
-      show("You're unsubscribed", "You won't get any more waitlist emails from BookNStyle, including the launch day email. You stay on the list. A booking link you claimed stays held until 60 days after launch: sign up in the app as a pro with this email to keep it.");
+      show("You're unsubscribed", "You won't get any more waitlist or news emails from BookNStyle. You stay on the list. A booking link you claimed stays held until 60 days after launch: sign up in the app as a pro with this email to keep it.");
       unsub.hidden = true;
       backIsMain();
       resub.hidden = false;
